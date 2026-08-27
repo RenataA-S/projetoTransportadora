@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrada de Veículos - Transportadora PRocha</title>
+    <!-- Favicon e Estilos Globais do Sistema -->
+    <link rel="icon" type="image/jpeg" href="img/logoPRocha.jpeg">
+    <link rel="stylesheet" href="style.css">
+    <!-- Biblioteca para geração de QR Code -->
+    <script src="https://cdn.jsdelivr.net/npm/kjua@0.9.0/dist/kjua.min.js"></script>
+    <style>
+        .qr-container-card {
+            max-width: 520px;
+            margin: 20px auto;
+        }
+        .form-qr label { 
+            display: block; 
+            text-align: left; 
+            margin: 10px 0 3px; 
+            font-weight: bold; 
+            font-size: 0.9rem;
+        }
+        .form-row {
+            display: flex;
+            gap: 10px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .btn-download {
+            background-color: #28a745;
+            display: none;
+            margin-top: 10px;
+        }
+        .btn-download:hover { background-color: #218838; }
+        #canvas-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        #canvas-container canvas, #canvas-container img {
+            border: 1px solid #eee;
+            padding: 8px;
+            background: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        /* Força a Placa totalmente em maiúsculas */
+        .uppercase-input {
+            text-transform: uppercase;
+        }
+        /* Força a primeira letra de cada palavra em maiúscula */
+        .capitalize-input {
+            text-transform: capitalize;
+        }
+    </style>
+</head>
+<body>
+
+  <!-- Cabeçalho Oficial do Sistema Transportadora PRocha -->
+  <header class="main-header">
+    <div class="logo-container">
+      <img src="img/logoPRocha.jpeg" alt="Logo Transportadora PRocha" class="system-logo">
+      <div>
+        <h1>Transportadora PRocha</h1>
+        <span class="system-title">Registro de Entrada e Emissão de Ticket QR</span>
+      </div>
+    </div>
+    <nav class="nav-menu">
+      <a href="index.html" class="active">Entrada</a>
+      <a href="balanca-entrada.html">Balança Entrada</a>
+      <a href="carregamento.html">Carregamento / Descarga</a>
+      <a href="balanca-saida.html">Balança Saída</a>
+      <a href="login.html" id="btn-login-nav">Login</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card qr-container-card">
+        <h2>Registro de Veículo / Portaria</h2>
+        
+        <form class="form-qr" onsubmit="event.preventDefault(); gerarQR();">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="placa">Placa do Veículo *</label>
+                    <input type="text" id="placa" class="uppercase-input" placeholder="ABC-1234 / ABC1D23" required>
+                </div>
+                <div class="form-group">
+                    <label for="tipoVeiculo">Tipo de Veículo *</label>
+                    <select id="tipoVeiculo" required style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                        <option value="">Selecione...</option>
+                        <option value="3/4">3/4</option>
+                        <option value="Toco">Toco</option>
+                        <option value="Truck">Truck</option>
+                        <option value="Carreta 2 Eixos">Carreta 2 Eixos</option>
+                        <option value="Carreta 3 Eixos">Carreta 3 Eixos</option>
+                        <option value="Bitrem">Bitrem</option>
+                        <option value="Rodotrem">Rodotrem</option>
+                        <option value="Furgão / Van">Furgão / Van</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="operacao">Operação *</label>
+                <select id="operacao" required style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="Carregamento">Carregamento</option>
+                    <option value="Descarga">Descarga</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="motorista">Nome do Motorista *</label>
+                <input type="text" id="motorista" class="capitalize-input" placeholder="Ex: João da Silva" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="cpfMotorista">CPF do Motorista *</label>
+                <input type="text" id="cpfMotorista" placeholder="000.000.000-00" required>
+            </div>
+
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
+            
+            <div class="form-group">
+                <label for="ajudante">Nome do Ajudante (Opcional)</label>
+                <input type="text" id="ajudante" class="capitalize-input" placeholder="Ex: Carlos Eduardo">
+            </div>
+            
+            <div class="form-group">
+                <label for="cpfAjudante">CPF do Ajudante (Opcional)</label>
+                <input type="text" id="cpfAjudante" placeholder="000.000.000-00">
+            </div>
+
+            <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="gerarQR()">Gerar Ticket / QR Code</button>
+            <button type="button" id="btnDownload" class="btn btn-download" style="width: 100%;" onclick="baixarQR()">Baixar Ticket (PNG)</button>
+        </form>
+        
+        <div id="canvas-container"></div>
+    </section>
+  </main>
+
+  <script>
+    function paraPrimeiraLetraMaiuscula(str) {
+        if (!str) return "";
+        return str.toLowerCase().replace(/(?:^|\s)\S/g, function(a) {
+            return a.toUpperCase();
+        });
+    }
+
+    function gerarQR() {
+        const placa = document.getElementById("placa").value.trim().toUpperCase();
+        const tipoVeiculo = document.getElementById("tipoVeiculo").value;
+        const operacao = document.getElementById("operacao").value;
+        const motorista = paraPrimeiraLetraMaiuscula(document.getElementById("motorista").value.trim());
+        const cpfMotorista = document.getElementById("cpfMotorista").value.trim();
+        const ajudante = paraPrimeiraLetraMaiuscula(document.getElementById("ajudante").value.trim());
+        const cpfAjudante = document.getElementById("cpfAjudante").value.trim();
+        
+        const container = document.getElementById("canvas-container");
+        const btnDownload = document.getElementById("btnDownload");
+        
+        if (!placa || !tipoVeiculo || !motorista || !cpfMotorista) {
+            alert("Por favor, preencha a placa, tipo de veículo, nome do motorista e CPF!");
+            return;
+        }
+
+        if (typeof kjua !== "function") {
+            alert("A biblioteca de QR Code não pôde ser carregada.");
+            return;
+        }
+
+        const agora = new Date();
+        const dataHoraEntrada = agora.toLocaleString("pt-BR");
+        
+        // Gera um número de OP automático gravado SOMENTE dentro do QR Code (Exemplo: OP-20260827123045)
+        const numeroOP = `OP-${agora.getFullYear()}${(agora.getMonth()+1).toString().padStart(2, '0')}${agora.getDate().toString().padStart(2, '0')}${agora.getHours().toString().padStart(2, '0')}${agora.getMinutes().toString().padStart(2, '0')}${agora.getSeconds().toString().padStart(2, '0')}`;
+
+        // Estrutura gravada exclusivamente no QR Code
+        const ticketDados = {
+            op: numeroOP,
+            placa: placa,
+            tipo_veiculo: tipoVeiculo,
+            operacao: operacao,
+            motorista: motorista,
+            cpf_motorista: cpfMotorista,
+            ajudante: ajudante || "N/A",
+            cpf_ajudante: cpfAjudante || "N/A",
+            entrada_portaria: dataHoraEntrada,
+            etapas: {
+                balanca_entrada: { inicio: "", fim: "" },
+                carregamento_descarga: { inicio: "", fim: "" },
+                balanca_saida: { inicio: "", fim: "" }
+            }
+        };
+
+        container.innerHTML = "";
+        
+        // Gera o QR Code com a chave OP incluída no JSON
+        const el = kjua({
+            text: JSON.stringify(ticketDados),
+            render: 'canvas',
+            size: 220,
+            fill: '#000000',
+            back: '#ffffff',
+            crisp: true
+        });
+
+        container.appendChild(el);
+        btnDownload.style.display = "block";
+    }
+
+    function baixarQR() {
+        const canvas = document.querySelector("#canvas-container canvas");
+        if (!canvas) return;
+
+        const placa = document.getElementById("placa").value.trim().toUpperCase() || "VEICULO";
+        const imageSrc = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = imageSrc;
+        link.download = `ticket_${placa}_${Date.now()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+  </script>
+
+  <!-- Script Firebase/Módulos do Sistema -->
+  <script type="module" src="script.js"></script>
+</body>
+</html>

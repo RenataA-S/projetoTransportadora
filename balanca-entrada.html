@@ -1,0 +1,68 @@
+<!DOCTYPE html> <!-- Declaração do tipo de documento HTML5 -->
+<html lang="pt-BR"> <!-- Define a linguagem em Português do Brasil -->
+<head> <!-- Início da tag head -->
+  <meta charset="UTF-8"> <!-- Codificação UTF-8 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Configuração de viewport -->
+  <title>Balança de Entrada - Transportadora PRocha</title> <!-- Título atualizado da página -->
+  <link rel="icon" type="image/jpeg" href="img/logoPRocha.jpeg"> <!-- Favicon do logo da PRocha -->
+  <link rel="stylesheet" href="style.css"> <!-- Folha de estilos CSS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script> <!-- Gerador QR Code -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script> <!-- Leitor QR Code -->
+</head> <!-- Fim da tag head -->
+<body> <!-- Início do corpo da página -->
+  <header class="main-header"> <!-- Cabeçalho topo -->
+    <div class="logo-container"> <!-- Contêiner da logomarca -->
+      <img src="img/logoPRocha.jpeg" alt="Logo Transportadora PRocha" class="system-logo"> <!-- Imagem do logo -->
+      <div> <!-- Div de identificação -->
+        <h1>Transportadora PRocha</h1> <!-- Nome da empresa -->
+        <span class="system-title">Balança Rodoviária - Entrada</span> <!-- Nome do módulo -->
+      </div> <!-- Fim da div de identificação -->
+    </div> <!-- Fim do contêiner da logomarca -->
+    <nav class="nav-menu"> <!-- Menu superior de links -->
+      <a href="index.html">Entrada</a> <!-- Link para Entrada -->
+      <a href="balanca-entrada.html" class="active">Balança Entrada</a> <!-- Link ativo para Balança Entrada -->
+      <a href="carregamento.html">Carregamento</a> <!-- Link para Carregamento -->
+      <a href="balanca-saida.html">Balança Saída</a> <!-- Link para Balança Saída -->
+    </nav> <!-- Fim do menu superior -->
+  </header> <!-- Fim do cabeçalho -->
+
+  <main class="container"> <!-- Bloco central da aplicação -->
+    <section class="card"> <!-- Seção de busca de OP -->
+      <h2>Busca de Operação para Pesagem Inicial</h2> <!-- Título da pesquisa -->
+      <div class="form-group-row"> <!-- Agrupador flexível de formulário -->
+        <div class="form-group"> <!-- Grupo do input de busca -->
+          <label for="busca-op">Número da Operação</label> <!-- Rótulo do campo -->
+          <input type="text" id="busca-op" placeholder="OP-20260826-0001"> <!-- Input de texto para OP -->
+        </div> <!-- Fim do grupo do input -->
+        <button class="btn btn-secondary" onclick="buscarOperacaoManual('ENTRADA')">Buscar Operação</button> <!-- Botão de busca manual -->
+      </div> <!-- Fim do agrupador flexível -->
+      <hr> <!-- Divisor horizontal de conteúdo -->
+      <div class="qr-scanner-section"> <!-- Bloco de scanner de câmera -->
+        <button class="btn btn-primary" onclick="iniciarLeitorQRCode('reader-balanca-entrada', 'ENTRADA')">Abrir Leitor QR Code</button> <!-- Botão liga câmera -->
+        <div id="reader-balanca-entrada" class="qr-reader-box"></div> <!-- Elemento de renderização do vídeo do scanner -->
+      </div> <!-- Fim do bloco de scanner -->
+    </section> <!-- Fim da seção de busca -->
+
+    <section id="detalhes-operacao" class="card hidden"> <!-- Seção detalhe de operação ocultada por padrão -->
+      <h3>Dados da Operação Identificada</h3> <!-- Título de detalhes -->
+      <div class="grid-read-only"> <!-- Grid de dados apenas leitura -->
+        <p><strong>Operação:</strong> <span id="read-op"></span></p> <!-- Exibe número de OP -->
+        <p><strong>Placa:</strong> <span id="read-placa"></span></p> <!-- Exibe placa -->
+        <p><strong>Motorista:</strong> <span id="read-motorista"></span></p> <!-- Exibe motorista -->
+        <p><strong>CPF:</strong> <span id="read-cpf"></span></p> <!-- Exibe CPF -->
+        <p><strong>Ajudante:</strong> <span id="read-ajudante"></span></p> <!-- Exibe ajudante -->
+        <p><strong>Status Atual:</strong> <span id="read-status" class="badge"></span></p> <!-- Exibe status -->
+      </div> <!-- Fim da grid apenas leitura -->
+
+      <form id="form-pesagem-entrada" onsubmit="event.preventDefault(); registrarPesoEntrada();"> <!-- Formulário de registro do peso de entrada -->
+        <div class="form-group"> <!-- Contêiner do campo de peso -->
+          <label for="pesoEntrada">PESO DE ENTRADA (KG) *</label> <!-- Rótulo de peso de entrada -->
+          <input type="number" id="pesoEntrada" step="0.01" required placeholder="Ex: 18450"> <!-- Campo para entrada numérica do peso em kg -->
+        </div> <!-- Fim do contêiner de peso -->
+        <button type="submit" class="btn btn-success">Salvar Pesagem de Entrada</button> <!-- Botão para gravar peso no banco -->
+      </form> <!-- Fim do formulário de registro de peso -->
+    </section> <!-- Fim da seção de detalhes -->
+  </main> <!-- Fim da tag main -->
+  <script type="module" src="script.js"></script> <!-- Módulo JS da aplicação -->
+</body> <!-- Fim do body -->
+</html> <!-- Fim da tag html -->

@@ -1,0 +1,90 @@
+<!DOCTYPE html> <!-- Declaração do tipo de documento HTML5 -->
+<html lang="pt-BR"> <!-- Define a linguagem em Português do Brasil -->
+<head> <!-- Início do bloco head de metadados -->
+  <meta charset="UTF-8"> <!-- Codificação de caracteres UTF-8 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Configuração de viewport para responsividade -->
+  <title>Painel Administrativo - Transportadora PRocha</title> <!-- Título exibido na aba do navegador -->
+  <link rel="icon" type="image/jpeg" href="img/logoPRocha.jpeg"> <!-- Favicon oficial do logo da PRocha -->
+  <link rel="stylesheet" href="style.css"> <!-- Importação da folha de estilos CSS global -->
+</head> <!-- Fim do cabeçalho -->
+<body> <!-- Início do corpo do documento -->
+
+  <header class="main-header"> <!-- Cabeçalho principal da interface -->
+    <div class="logo-container"> <!-- Contêiner da logomarca e título -->
+      <img src="img/logoPRocha.jpeg" alt="Logo Transportadora PRocha" class="system-logo"> <!-- Imagem do logo PRocha -->
+      <div>
+        <h1>Transportadora PRocha</h1> <!-- Nome corporativo da empresa -->
+        <span class="system-title">Painel Gerencial & Gestão do Pátio</span> <!-- Subtítulo do módulo ativo -->
+      </div>
+    </div> <!-- Fim do contêiner do logo -->
+    
+    <nav class="nav-menu"> <!-- Menu de navegação superior -->
+      <a href="index.html">Entrada</a> <!-- Link para Entrada -->
+      <a href="balanca-entrada.html">Balança Entrada</a> <!-- Link para Balança Entrada -->
+      <a href="carregamento.html">Carregamento</a> <!-- Link para Carregamento -->
+      <a href="balanca-saida.html">Balança Saída</a> <!-- Link para Balança Saída -->
+      <a href="administrativo.html" class="active">Painel Admin</a> <!-- Link ativo do painel gerencial -->
+      <a href="login.html" id="btn-login-nav">Login</a> <!-- Botão dinâmico de Logout/Login -->
+    </nav> <!-- Fim do menu superior -->
+  </header> <!-- Fim do cabeçalho -->
+
+  <main class="container-fluid"> <!-- Contêiner fluido de largura expandida para o painel -->
+    
+    <!-- Cartões de Métricas e Estatísticas do Pátio -->
+    <section class="card">
+      <h2>Métricas e Status do Pátio em Tempo Real</h2>
+      <div class="dashboard-cards" style="margin-top: 1rem;">
+        <div class="card" style="text-align: center; margin-bottom: 0;">
+          <h4>Aguardando no Pátio</h4>
+          <span id="stat-patio" class="stat-number">0</span>
+        </div>
+        <div class="card" style="text-align: center; margin-bottom: 0;">
+          <h4>Em Doca (Carg/Desc)</h4>
+          <span id="stat-carregando" class="stat-number">0</span>
+        </div>
+        <div class="card" style="text-align: center; margin-bottom: 0;">
+          <h4>Concluídos Hoje</h4>
+          <span id="stat-finalizados" class="stat-number">0</span>
+        </div>
+        <div class="card" style="text-align: center; margin-bottom: 0;">
+          <h4>Peso Total Movimentado</h4>
+          <span id="stat-peso-total" class="stat-number">0.00 kg</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabela de Histórico de Operações e Gestão Geral -->
+    <section class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>Histórico de Operações e Auditoria</h2>
+        <button class="btn btn-secondary" onclick="carregarHistoricoOperacoes()">Atualizar Dados</button>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="table-custom">
+          <thead>
+            <tr>
+              <th>Nº da OP</th>
+              <th>Placa</th>
+              <th>Motorista</th>
+              <th>Data/Hora Entrada</th>
+              <th>Peso Entrada</th>
+              <th>Peso Saída</th>
+              <th>Peso Líquido</th>
+              <th>Status Atual</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-historico">
+            <!-- As linhas da tabela serão injetadas dinamicamente via script.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main> <!-- Fim do contêiner fluido -->
+
+  <!-- Script com Tipo Module para integração com o Firebase v9+ -->
+  <script type="module" src="script.js"></script>
+</body>
+</html>
