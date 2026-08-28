@@ -3,66 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrada de Veículos - Transportadora PRocha</title>
-    <!-- Favicon e Estilos Globais do Sistema -->
-    <link rel="icon" type="image/jpeg" href="img/logoPRocha.jpeg">
+    <title>Entrada de Veículos - Transportadora Paulão</title>
+    <link rel="icon" type="image/jpeg" href="img/LogoTransportadora.jpeg">
     <link rel="stylesheet" href="style.css">
-    <!-- Biblioteca para geração de QR Code -->
+    <!-- Biblioteca kjua para geração do QR Code do Ticket -->
     <script src="https://cdn.jsdelivr.net/npm/kjua@0.9.0/dist/kjua.min.js"></script>
     <style>
-        .qr-container-card {
-            max-width: 520px;
-            margin: 20px auto;
-        }
-        .form-qr label { 
-            display: block; 
-            text-align: left; 
-            margin: 10px 0 3px; 
-            font-weight: bold; 
-            font-size: 0.9rem;
-        }
-        .form-row {
-            display: flex;
-            gap: 10px;
-        }
-        .form-row .form-group {
-            flex: 1;
-        }
-        .btn-download {
-            background-color: #28a745;
-            display: none;
-            margin-top: 10px;
-        }
-        .btn-download:hover { background-color: #218838; }
-        #canvas-container {
+        .qr-container-card { max-width: 520px; margin: 20px auto; }
+        .form-qr label { display: block; text-align: left; margin: 10px 0 3px; font-weight: bold; font-size: 0.9rem; }
+        .form-row { display: flex; gap: 10px; }
+        .form-row .form-group { flex: 1; }
+        .uppercase-input { text-transform: uppercase; }
+        .capitalize-input { text-transform: capitalize; }
+        
+        /* Estilização da área do Ticket de Entrada */
+        .ticket-box {
             margin-top: 20px;
+            padding: 15px;
+            border: 2px dashed #0b4f8c;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            text-align: center;
+        }
+        .ticket-header {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #0b4f8c;
+            margin-bottom: 5px;
+        }
+        .ticket-op {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            margin: 5px 0;
+        }
+        #canvas-qr {
+            margin: 15px auto;
             display: flex;
             justify-content: center;
         }
-        #canvas-container canvas, #canvas-container img {
-            border: 1px solid #eee;
-            padding: 8px;
-            background: white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        #canvas-qr canvas, #canvas-qr img {
+            border: 1px solid #ddd;
+            padding: 5px;
+            background: #fff;
         }
-        /* Força a Placa totalmente em maiúsculas */
-        .uppercase-input {
-            text-transform: uppercase;
-        }
-        /* Força a primeira letra de cada palavra em maiúscula */
-        .capitalize-input {
-            text-transform: capitalize;
+
+        /* Regra de impressão para o Ticket */
+        @media print {
+            body * { visibility: hidden; }
+            #secao-ticket-gerado, #secao-ticket-gerado * { visibility: visible; }
+            #secao-ticket-gerado {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: none;
+            }
+            .btn-ticket-group { display: none !important; }
         }
     </style>
 </head>
 <body>
 
-  <!-- Cabeçalho Oficial do Sistema Transportadora PRocha -->
   <header class="main-header">
     <div class="logo-container">
-      <img src="img/logoPRocha.jpeg" alt="Logo Transportadora PRocha" class="system-logo">
+      <img src="img/LogoTransportadora.jpeg" alt="Logo Transportadora Paulão" class="system-logo">
       <div>
-        <h1>Transportadora PRocha</h1>
+        <h1>Transportadora Paulão</h1>
         <span class="system-title">Registro de Entrada e Emissão de Ticket QR</span>
       </div>
     </div>
@@ -71,15 +78,16 @@
       <a href="balanca-entrada.html">Balança Entrada</a>
       <a href="carregamento.html">Carregamento / Descarga</a>
       <a href="balanca-saida.html">Balança Saída</a>
-      <a href="login.html" id="btn-login-nav">Login</a>
+      <a href="login.html" id="btn-login-nav">Sair</a>
     </nav>
   </header>
 
   <main class="container">
+    <!-- Formuário de Entrada / Portaria -->
     <section class="card qr-container-card">
         <h2>Registro de Veículo / Portaria</h2>
         
-        <form class="form-qr" onsubmit="event.preventDefault(); gerarQR();">
+        <form class="form-qr" id="form-entrada" onsubmit="event.preventDefault(); cadastrarEntrada();">
             <div class="form-row">
                 <div class="form-group">
                     <label for="placa">Placa do Veículo *</label>
@@ -132,100 +140,90 @@
                 <input type="text" id="cpfAjudante" placeholder="000.000.000-00">
             </div>
 
-            <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="gerarQR()">Gerar Ticket / QR Code</button>
-            <button type="button" id="btnDownload" class="btn btn-download" style="width: 100%;" onclick="baixarQR()">Baixar Ticket (PNG)</button>
+            <div class="form-row" style="margin-top: 15px;">
+                <button type="submit" class="btn btn-primary">Salvar Entrada e Gerar QR</button>
+                <button type="button" class="btn btn-secondary" onclick="gerarApenasQR()">Gerar QR prévio</button>
+            </div>
         </form>
-        
-        <div id="canvas-container"></div>
+
+        <!-- Cartão / Ticket com o QR Code Gerado -->
+        <div id="secao-ticket-gerado" class="ticket-box hidden">
+            <div class="ticket-header">TRANSPORTADORA PAULÃO</div>
+            <div style="font-size: 0.85rem; color: #666;">TICKET DE ENTRADA NO PÁTIO</div>
+            <div id="ticket-op" class="ticket-op">OP-00000000-0000</div>
+            
+            <div id="canvas-qr"></div>
+
+            <div style="font-size: 0.9rem; text-align: left; margin-top: 10px; background: #fff; padding: 10px; border-radius: 4px; border: 1px solid #eee;">
+                <p style="margin: 3px 0;"><strong>Placa:</strong> <span id="ticket-placa">-</span></p>
+                <p style="margin: 3px 0;"><strong>Motorista:</strong> <span id="ticket-motorista">-</span></p>
+                <p style="margin: 3px 0;"><strong>Operação:</strong> <span id="ticket-operacao">-</span></p>
+            </div>
+
+            <div class="btn-ticket-group" style="margin-top: 15px; display: flex; gap: 10px;">
+                <button class="btn btn-success" style="flex: 1;" onclick="imprimirTicket()">Imprimir Ticket</button>
+                <button class="btn btn-primary" style="flex: 1;" onclick="avancarParaBalanca()">Ir para Balança</button>
+            </div>
+        </div>
     </section>
   </main>
 
-  <script>
-    function paraPrimeiraLetraMaiuscula(str) {
-        if (!str) return "";
-        return str.toLowerCase().replace(/(?:^|\s)\S/g, function(a) {
-            return a.toUpperCase();
-        });
-    }
+  <!-- Módulo JavaScript principal -->
+  <script type="module" src="script.js"></script>
 
-    function gerarQR() {
+  <!-- Funções globais de apoio ao Ticket no index.html -->
+  <script>
+    function gerarApenasQR() {
         const placa = document.getElementById("placa").value.trim().toUpperCase();
-        const tipoVeiculo = document.getElementById("tipoVeiculo").value;
+        const motorista = document.getElementById("motorista").value.trim();
         const operacao = document.getElementById("operacao").value;
-        const motorista = paraPrimeiraLetraMaiuscula(document.getElementById("motorista").value.trim());
-        const cpfMotorista = document.getElementById("cpfMotorista").value.trim();
-        const ajudante = paraPrimeiraLetraMaiuscula(document.getElementById("ajudante").value.trim());
-        const cpfAjudante = document.getElementById("cpfAjudante").value.trim();
-        
-        const container = document.getElementById("canvas-container");
-        const btnDownload = document.getElementById("btnDownload");
-        
-        if (!placa || !tipoVeiculo || !motorista || !cpfMotorista) {
-            alert("Por favor, preencha a placa, tipo de veículo, nome do motorista e CPF!");
+        const containerQr = document.getElementById("canvas-qr");
+        const ticketBox = document.getElementById("secao-ticket-gerado");
+
+        if (!placa || !motorista) {
+            alert("Preencha ao menos a Placa e o Motorista para gerar o pré-ticket.");
             return;
         }
 
         if (typeof kjua !== "function") {
-            alert("A biblioteca de QR Code não pôde ser carregada.");
+            alert("A biblioteca kjua não foi carregada corretamente.");
             return;
         }
 
-        const agora = new Date();
-        const dataHoraEntrada = agora.toLocaleString("pt-BR");
+        containerQr.innerHTML = "";
         
-        // Gera um número de OP automático gravado SOMENTE dentro do QR Code (Exemplo: OP-20260827123045)
-        const numeroOP = `OP-${agora.getFullYear()}${(agora.getMonth()+1).toString().padStart(2, '0')}${agora.getDate().toString().padStart(2, '0')}${agora.getHours().toString().padStart(2, '0')}${agora.getMinutes().toString().padStart(2, '0')}${agora.getSeconds().toString().padStart(2, '0')}`;
+        const dadosQr = `PLACA: ${placa}\nMOTORISTA: ${motorista}\nOPERACAO: ${operacao}`;
 
-        // Estrutura gravada exclusivamente no QR Code
-        const ticketDados = {
-            op: numeroOP,
-            placa: placa,
-            tipo_veiculo: tipoVeiculo,
-            operacao: operacao,
-            motorista: motorista,
-            cpf_motorista: cpfMotorista,
-            ajudante: ajudante || "N/A",
-            cpf_ajudante: cpfAjudante || "N/A",
-            entrada_portaria: dataHoraEntrada,
-            etapas: {
-                balanca_entrada: { inicio: "", fim: "" },
-                carregamento_descarga: { inicio: "", fim: "" },
-                balanca_saida: { inicio: "", fim: "" }
-            }
-        };
-
-        container.innerHTML = "";
-        
-        // Gera o QR Code com a chave OP incluída no JSON
-        const el = kjua({
-            text: JSON.stringify(ticketDados),
+        const qrCanvas = kjua({
+            text: dadosQr,
             render: 'canvas',
-            size: 220,
-            fill: '#000000',
+            size: 180,
+            fill: '#0b4f8c',
             back: '#ffffff',
             crisp: true
         });
 
-        container.appendChild(el);
-        btnDownload.style.display = "block";
+        containerQr.appendChild(qrCanvas);
+        document.getElementById("ticket-op").innerText = "PRÉ-REGISTRO";
+        document.getElementById("ticket-placa").innerText = placa;
+        document.getElementById("ticket-motorista").innerText = motorista;
+        document.getElementById("ticket-operacao").innerText = operacao;
+
+        ticketBox.classList.remove("hidden");
     }
 
-    function baixarQR() {
-        const canvas = document.querySelector("#canvas-container canvas");
-        if (!canvas) return;
+    function imprimirTicket() {
+        window.print();
+    }
 
-        const placa = document.getElementById("placa").value.trim().toUpperCase() || "VEICULO";
-        const imageSrc = canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.href = imageSrc;
-        link.download = `ticket_${placa}_${Date.now()}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    function avancarParaBalanca() {
+        const op = document.getElementById("ticket-op").innerText;
+        if (op && op !== "PRÉ-REGISTRO") {
+            window.location.href = `balanca-entrada.html?op=${op}`;
+        } else {
+            alert("Registre primeiro a entrada antes de prosseguir para a balança.");
+        }
     }
   </script>
-
-  <!-- Script Firebase/Módulos do Sistema -->
-  <script type="module" src="script.js"></script>
 </body>
 </html>

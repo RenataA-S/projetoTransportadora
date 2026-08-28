@@ -1,31 +1,31 @@
-<!DOCTYPE html> <!-- Declaração do documento em versão HTML5 -->
-<html lang="pt-BR"> <!-- Idioma principal configurado para Português Brasil -->
-<head> <!-- Cabeçalho com as configurações de meta dados -->
-  <meta charset="UTF-8"> <!-- Definição da tabela de caracteres UTF-8 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Ajustes da interface em dispositivos móveis -->
-  <title>Login - Transportadora PRocha</title> <!-- Título atualizado para a Transportadora PRocha -->
-  <link rel="icon" type="image/jpeg" href="img/logoPRocha.jpeg"> <!-- Favicon do logo da PRocha -->
-  <link rel="stylesheet" href="style.css"> <!-- Importação do arquivo de estilo em CSS -->
-</head> <!-- Fim do cabeçalho -->
-<body class="login-body"> <!-- Corpo da página de login estilizado com classe específica -->
-  <div class="login-card"> <!-- Cartão centralizado com o formulário de login -->
-    <div style="text-align: center; margin-bottom: 1rem;"> <!-- Div centralizada para abrigar a logo PRocha no formulário de login -->
-      <img src="img/logoPRocha.jpeg" alt="Logo Transportadora PRocha" style="height: 70px; width: auto; object-fit: contain;"> <!-- Imagem oficial da logo da PRocha na tela de login -->
-    </div> <!-- Fim da div centralizada do logo -->
-    <h2 style="text-align: center; margin-bottom: 1.5rem;">Transportadora PRocha</h2> <!-- Título corporativo da tela de login -->
-    <form id="form-login" onsubmit="event.preventDefault(); realizarLogin();"> <!-- Formulário que previne reload de página e chama função JS de login -->
-      <div class="form-group"> <!-- Contêiner para o campo de e-mail -->
-        <label for="login-email">E-mail Operacional</label> <!-- Rótulo para o campo de e-mail -->
-        <input type="email" id="login-email" required placeholder="usuario@transportadoraprocha.com"> <!-- Input de entrada do e-mail de acesso -->
-      </div> <!-- Fim do contêiner de e-mail -->
-      <div class="form-group"> <!-- Contêiner para o campo de senha -->
-        <label for="login-senha">Senha</label> <!-- Rótulo para o campo de senha -->
-        <input type="password" id="login-senha" required placeholder="******"> <!-- Input de entrada da senha secreta -->
-      </div> <!-- Fim do contêiner de senha -->
-      <button type="submit" class="btn btn-primary btn-block">ENTRAR</button> <!-- Botão de envio para validação e login -->
-    </form> <!-- Fim do formulário -->
-    <div id="login-erro" class="alert alert-danger hidden"></div> <!-- Caixa oculta utilizada para exibir mensagens de falha de login -->
-  </div> <!-- Fim do cartão de login -->
-  <script type="module" src="script.js"></script> <!-- Carregamento do arquivo script.js como módulo JavaScript -->
-</body> <!-- Fim do corpo do documento -->
-</html> <!-- Fim do HTML -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Transportadora Paulão</title>
+  <link rel="icon" type="image/jpeg" href="img/LogoTransportadora.jpeg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+  <div class="login-card">
+    <div style="text-align: center; margin-bottom: 1rem;">
+      <img src="img/LogoTransportadora.jpeg" alt="Logo Transportadora Paulão" style="height: 70px; width: auto; object-fit: contain;">
+    </div>
+    <h2 style="text-align: center; margin-bottom: 1.5rem;">Transportadora Paulão</h2>
+    <form id="form-login" onsubmit="event.preventDefault(); realizarLogin();">
+      <div class="form-group">
+        <label for="login-email">E-mail Operacional</label>
+        <input type="email" id="login-email" required placeholder="usuario@transportadorapaulao.com">
+      </div>
+      <div class="form-group">
+        <label for="login-senha">Senha</label>
+        <input type="password" id="login-senha" required placeholder="******">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">ENTRAR</button>
+    </form>
+    <div id="login-erro" class="alert alert-danger hidden"></div>
+  </div>
+  <script type="module" src="script.js"></script>
+</body>
+</html>

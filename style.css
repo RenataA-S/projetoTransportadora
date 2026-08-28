@@ -17,109 +17,106 @@
 
 /* Reset simples de margens, preenchimentos e modelo de caixa */
 * {
-  box-sizing: border-box; /* Garante cálculo exato das dimensões dos elementos */
-  margin: 0; /* Remove as margens internas padrão dos navegadores */
-  padding: 0; /* Remove os espaçamentos internos padrão */
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Define a família tipográfica */
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Estilização do corpo principal */
 body {
-  background-color: var(--bg-color); /* Aplica a cor de fundo padrão */
-  color: var(--text-color); /* Aplica a cor de texto padrão */
-  line-height: 1.6; /* Define a altura entre linhas para melhor leitura */
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.6;
 }
 
 /* Cabeçalho principal e Navegação */
 .main-header {
-  background-color: var(--primary-color); /* Define o fundo do topo com a cor azul primária */
-  color: #fff; /* Texto em branco */
-  padding: 1rem 2rem; /* Espaçamento interno superior/inferior e lateral */
-  display: flex; /* Habilita layout flexível */
-  justify-content: space-between; /* Distribui os itens nas extremidades */
-  align-items: center; /* Centraliza o alinhamento vertical dos elementos */
+  background-color: var(--primary-color);
+  color: #fff;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  /* MENU FIXO NO TOPO */
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 
-/* Estilização do contêiner da imagem do logo e do título */
 .logo-container {
-  display: flex; /* Organiza a imagem e o texto lado a lado */
-  align-items: center; /* Centraliza a imagem verticalmente em relação ao texto */
-  gap: 15px; /* Espaço entre a logo da Rocha e o texto do sistema */
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
-/* Estilização da imagem do logo da Transportadora Rocha */
 .system-logo {
-  height: 52px; /* Define altura fixa para a logo da Transportadora Rocha */
-  width: auto; /* Mantém a proporção correta da imagem */
-  object-fit: contain; /* Ajusta a imagem sem distorcê-la */
-  filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.3)); /* Aplica sombra suave na imagem da logomarca */
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.3));
 }
 
-/* Subtítulo informativo do módulo ativo */
 .system-title {
-  font-size: 0.85rem; /* Tamanho reduzido para o subtítulo */
-  opacity: 0.8; /* Transparência suave */
-  display: block; /* Garante que fique em uma nova linha */
+  font-size: 0.85rem;
+  opacity: 0.8;
+  display: block;
 }
 
-/* Estilização dos links do menu de navegação superior */
 .nav-menu a {
-  color: #fff; /* Cor branca para o texto dos links */
-  text-decoration: none; /* Remove o sublinhado padrão dos links */
-  margin-left: 15px; /* Margem à esquerda de cada link */
-  padding: 8px 12px; /* Espaçamento interno de clique */
-  border-radius: var(--border-radius); /* Borda levemente arredondada */
+  color: #fff;
+  text-decoration: none;
+  margin-left: 15px;
+  padding: 8px 12px;
+  border-radius: var(--border-radius);
 }
 
-/* Efeito ao passar o mouse ou item ativo no menu */
 .nav-menu a.active, .nav-menu a:hover {
-  background-color: rgba(255, 255, 255, 0.2); /* Fundo branco semi-transparente */
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Contêineres de Layout */
 .container {
-  max-width: 900px; /* Largura máxima para conteúdos padrão */
-  margin: 2rem auto; /* Centralização com margem superior/inferior */
-  padding: 0 1rem; /* Espaçamento de segurança lateral */
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
 }
 
-/* Contêiner fluido para tabelas gerenciais de maior largura */
 .container-fluid {
-  max-width: 1400px; /* Largura expandida para painéis com tabelas grandes */
-  margin: 2rem auto; /* Margem auto para centralização */
-  padding: 0 1rem; /* Padding lateral */
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 0 1rem;
 }
 
-/* Estilos de Cartões/Painéis */
+/* Cartões */
 .card {
-  background: var(--card-bg); /* Fundo branco */
-  padding: 1.5rem; /* Espaçamento interno do cartão */
-  border-radius: var(--border-radius); /* Bordas arredondadas */
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Sombra leve ao redor do cartão */
-  margin-bottom: 1.5rem; /* Separação dos cartões inferiores */
+  background: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem;
 }
 
-/* Estilos de Campos de Formulários */
+/* Formulários */
 .form-group {
-  margin-bottom: 1.2rem; /* Espaçamento inferior do grupo de entrada */
-  flex: 1; /* Ocupa o espaço proporcional dentro da flexbox */
+  margin-bottom: 1.2rem;
+  flex: 1;
 }
 
-/* Agrupador em linha de campos de formulário */
 .form-group-row {
-  display: flex; /* Alinha entradas lado a lado */
-  gap: 1rem; /* Espaço entre os campos de entrada */
-  margin-bottom: 0.5rem; /* Margem inferior */
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
 }
 
-/* Estilização dos rótulos (labels) */
 label {
-  display: block; /* Garante que o rótulo ocupe a linha inteira acima do campo */
-  font-weight: 600; /* Texto em negrito leve */
-  margin-bottom: 0.3rem; /* Espaço para o campo abaixo */
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
 }
 
-/* Estilização unificada de entradas de dados e seletores */
 input[type="text"],
 input[type="number"],
 input[type="email"],
@@ -127,185 +124,109 @@ input[type="password"],
 input[type="date"],
 select,
 textarea {
-  width: 100%; /* Largura total do elemento */
-  padding: 10px; /* Preenchimento interno para escrita confortável */
-  border: 1px solid #ccc; /* Borda em tom cinza suave */
-  border-radius: var(--border-radius); /* Cantos ligeiramente arredondados */
-  font-size: 1rem; /* Tamanho padrão de leitura dos textos digitados */
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
 }
 
-/* Estilização Base de Botões */
+/* Botões */
 .btn {
-  padding: 10px 18px; /* Espaçamento interno do botão */
-  border: none; /* Remove a borda padrão */
-  border-radius: var(--border-radius); /* Bordas arredondadas */
-  cursor: pointer; /* Exibe cursor em formato de mão ao passar por cima */
-  font-size: 1rem; /* Tamanho da fonte dos botões */
-  font-weight: bold; /* Texto em negrito */
+  padding: 10px 18px;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
 }
 
-/* Classes utilitárias de cores de botões */
-.btn-primary { background-color: var(--primary-color); color: #fff; } /* Botão azul escuro primário */
-.btn-secondary { background-color: var(--secondary-color); color: #fff; } /* Botão azul médio secundário */
-.btn-success { background-color: var(--success-color); color: #fff; } /* Botão verde de ação concluída */
-.btn-danger { background-color: var(--danger-color); color: #fff; } /* Botão vermelho de perigo/cancelamento */
-.btn-block { width: 100%; } /* Faz o botão ocupar 100% da largura do elemento pai */
+.btn-primary { background-color: var(--primary-color); color: #fff; }
+.btn-secondary { background-color: var(--secondary-color); color: #fff; }
+.btn-success { background-color: var(--success-color); color: #fff; }
+.btn-danger { background-color: var(--danger-color); color: #fff; }
+.btn-block { width: 100%; }
 
-/* Grade de exibição apenas de leitura */
+/* Grid de leitura */
 .grid-read-only {
-  display: grid; /* Layout em grade responsiva */
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Colunas dinâmicas conforme a largura da tela */
-  gap: 10px; /* Espaço entre as células */
-  background-color: #e9ecef; /* Fundo cinza suave */
-  padding: 1rem; /* Espaçamento interno */
-  border-radius: var(--border-radius); /* Bordas arredondadas */
-  margin-bottom: 1.5rem; /* Margem inferior de separação */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  background-color: #e9ecef;
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1.5rem;
 }
 
-/* Modais e Caixas Flutuantes */
-.modal {
-  position: fixed; /* Fixa o modal sobre toda a tela do navegador */
-  top: 0; left: 0; width: 100%; height: 100%; /* Ocupa 100% da tela */
-  background: rgba(0,0,0,0.6); /* Fundo escuro semi-transparente */
-  display: flex; /* Usa flexbox para centralizar */
-  justify-content: center; /* Centraliza horizontalmente */
-  align-items: center; /* Centraliza verticalmente */
-  z-index: 1000; /* Garante posicionamento por cima de tudo */
-}
-
-/* Conteúdo interno da janela modal */
-.modal-content {
-  background: #fff; /* Fundo branco */
-  padding: 2rem; /* Espaçamento interno amplo */
-  border-radius: var(--border-radius); /* Cantos arredondados */
-  width: 90%; /* Largura padrão em telas pequenas */
-  max-width: 500px; /* Limite máximo de largura da caixa */
-  text-align: center; /* Texto centralizado por padrão */
-}
-
-/* Classe utilitária para ocultar elementos da página */
+/* Utilidades */
 .hidden { display: none !important; }
 
-/* Emblemas / Badges de Status */
 .badge {
-  padding: 4px 8px; /* Espaçamento do emblema */
-  border-radius: 4px; /* Cantos arredondados */
-  background-color: #6c757d; /* Cor cinza padrão */
-  color: #fff; /* Texto em branco */
-  font-size: 0.85rem; /* Tamanho de texto menor */
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: #6c757d;
+  color: #fff;
+  font-size: 0.85rem;
 }
 
-/* Dashboard do Painel Administrativo */
+/* Dashboard */
 .dashboard-cards {
-  display: grid; /* Grade responsiva para métricas */
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Layout adaptável para telas variadas */
-  gap: 1rem; /* Espaço entre cartões */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
 }
 
-/* Exibição dos números de estatística */
 .stat-number {
-  font-size: 1.8rem; /* Tamanho grande para destaque numérico */
-  font-weight: bold; /* Negrito destacado */
-  color: var(--primary-color); /* Aplica cor azul primária */
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: var(--primary-color);
 }
 
-/* Estilização da tabela de dados */
+/* Tabelas */
 .table-custom {
-  width: 100%; /* Ocupa a largura completa */
-  border-collapse: collapse; /* Une as bordas das células */
+  width: 100%;
+  border-collapse: collapse;
 }
 
-/* Estilização das células do cabeçalho e corpo da tabela */
 .table-custom th, .table-custom td {
-  border: 1px solid #ddd; /* Borda cinza suave */
-  padding: 10px; /* Preenchimento interno */
-  text-align: left; /* Alinhamento do texto à esquerda */
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
 }
 
-/* Fundo do cabeçalho da tabela */
 .table-custom th {
-  background-color: #f2f2f2; /* Fundo cinza claro */
+  background-color: #f2f2f2;
 }
 
-/* Responsividade para Dispositivos Móveis */
+/* Responsividade */
 @media (max-width: 768px) {
   .form-group-row {
-    flex-direction: column; /* Transforma linhas de formulário em colunas em dispositivos móveis */
+    flex-direction: column;
   }
   .main-header {
-    flex-direction: column; /* Alinha o cabeçalho verticalmente no celular */
-    gap: 1rem; /* Espaçamento entre os blocos no topo */
+    flex-direction: column;
+    gap: 1rem;
   }
 }
 
-/* Capitalização de campos via CSS */
 input.capitalize {
-  text-transform: capitalize; /* Garante primeiras letras maiúsculas */
+  text-transform: capitalize;
 }
 
-/* Estilização do QR Code e Modal de Operação */
-#qrcode-container {
-  display: flex; /* Flexbox interno */
-  justify-content: center; /* Centraliza QR code horizontalmente */
-  align-items: center; /* Centraliza QR code verticalmente */
-  margin: 1.5rem auto; /* Centralização com margens top e bottom */
-  padding: 10px; /* Preenchimento em volta do QR Code */
-  background-color: #ffffff; /* Fundo totalmente branco */
-  border: 1px solid #ddd; /* Borda fina cinza */
-  border-radius: var(--border-radius); /* Arredondamento de cantos */
-  width: fit-content; /* Largura ajustada exatamente ao conteúdo */
+.campo-peso-destaque input {
+  background-color: #f8f9fa;
+  color: #004085;
 }
 
-/* Ajustes da imagem e canvas do QR Code */
-#qrcode-container img, 
-#qrcode-container canvas {
-  display: block; /* Exibe em bloco */
-  margin: 0 auto; /* Centraliza dentro da div container */
+.campo-peso-destaque input:focus {
+  background-color: #ffffff;
+  box-shadow: 0 0 8px rgba(0, 64, 133, 0.4);
+  outline: none;
 }
 
-/* Texto em destaque no modal */
-.highlight-text {
-  font-size: 1.1rem; /* Texto em tamanho ligeiramente maior */
-  font-weight: bold; /* Destaque em negrito */
-  color: var(--primary-color); /* Cor azul primária */
-  margin-top: 0.5rem; /* Margem superior */
-  margin-bottom: 1rem; /* Margem inferior */
-}
-
-/* Bloco de informações resumidas do modal */
-.modal-info {
-  text-align: left; /* Alinha texto à esquerda */
-  background-color: #f8f9fa; /* Fundo cinza bem claro */
-  padding: 0.8rem 1rem; /* Preenchimento interno */
-  border-radius: var(--border-radius); /* Bordas levemente arredondadas */
-  margin-bottom: 1.5rem; /* Margem de separação inferior */
-}
-
-/* Botões de ação alinhados na janela modal */
-.modal-actions {
-  display: flex; /* Disposição flexível */
-  gap: 10px; /* Espaço entre botões */
-  justify-content: center; /* Alinhamento centralizado dos botões */
-}
-
-/* Regras de Impressão (Print) para gerar folhas limpas do QR Code */
-@media print {
-  body * {
-    visibility: hidden; /* Oculta todo o conteúdo comum da página na hora de imprimir */
-  }
-  #modal-qrcode, 
-  #modal-qrcode * {
-    visibility: visible; /* Mantém visível unicamente o modal do QR Code */
-  }
-  #modal-qrcode {
-    position: absolute; /* Reposiciona a janela no topo absoluto da folha de impressão */
-    left: 0; /* Alinha à esquerda da folha */
-    top: 0; /* Alinha ao topo da folha */
-    width: 100%; /* Usa toda a largura da folha de papel */
-    height: auto; /* Altura automática */
-    background: none; /* Remove o fundo escuro do modal na impressão */
-  }
-  .modal-actions {
-    display: none !important; /* Esconde os botões de ação na folha de impressão */
-  }
+.qr-reader-box {
+  margin-top: 15px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
 }

@@ -1,68 +1,68 @@
-<!DOCTYPE html> <!-- Declaração de HTML5 -->
-<html lang="pt-BR"> <!-- Configura a linguagem para Português do Brasil -->
-<head> <!-- Bloco head de metadados -->
-  <meta charset="UTF-8"> <!-- Codificação de caracteres UTF-8 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Ajuste de proporções de exibição em telas -->
-  <title>Balança de Saída - Transportadora PRocha</title> <!-- Título com o nome da empresa -->
-  <link rel="icon" type="image/jpeg" href="img/logoPRocha.jpeg"> <!-- Ícone Favicon PRocha para a aba do navegador -->
-  <link rel="stylesheet" href="style.css"> <!-- Importação do CSS estilizado -->
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script> <!-- Script leitor QR Code -->
-</head> <!-- Fim do bloco head -->
-<body> <!-- Corpo da página web -->
-  <header class="main-header"> <!-- Cabeçalho principal do site -->
-    <div class="logo-container"> <!-- Contêiner da logomarca -->
-      <img src="img/logoPRocha.jpeg" alt="Logo Transportadora PRocha" class="system-logo"> <!-- Imagem do logo da PRocha -->
-      <div> <!-- Sub-contêiner para títulos -->
-        <h1>Transportadora PRocha</h1> <!-- Título principal da empresa -->
-        <span class="system-title">Balança Rodoviária - Saída</span> <!-- Rótulo de saída -->
-      </div> <!-- Fim do sub-contêiner -->
-    </div> <!-- Fim do contêiner da logomarca -->
-    <nav class="nav-menu"> <!-- Menu navegacional de páginas -->
-      <a href="index.html">Entrada</a> <!-- Link Entrada -->
-      <a href="balanca-entrada.html">Balança Entrada</a> <!-- Link Balança Entrada -->
-      <a href="carregamento.html">Carregamento</a> <!-- Link Carregamento -->
-      <a href="balanca-saida.html" class="active">Balança Saída</a> <!-- Link Balança Saída ativo -->
-    </nav> <!-- Fim da navegação -->
-  </header> <!-- Fim do cabeçalho -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Balança de Saída - Transportadora Paulão</title>
+  <link rel="icon" type="image/jpeg" href="img/LogoTransportadora.jpeg">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+<body>
+  <header class="main-header">
+    <div class="logo-container">
+      <img src="img/LogoTransportadora.jpeg" alt="Logo Transportadora Paulão" class="system-logo">
+      <div>
+        <h1>Transportadora Paulão</h1>
+        <span class="system-title">Balança Rodoviária - Saída</span>
+      </div>
+    </div>
+    <nav class="nav-menu">
+      <a href="index.html">Entrada</a>
+      <a href="balanca-entrada.html">Balança Entrada</a>
+      <a href="carregamento.html">Carregamento</a>
+      <a href="balanca-saida.html" class="active">Balança Saída</a>
+    </nav>
+  </header>
 
-  <main class="container"> <!-- Conteúdo central container -->
-    <section class="card"> <!-- Seção de cartão com filtro -->
-      <h2>Localizar Operação para Encerramento</h2> <!-- Título do filtro -->
-      <div class="form-group-row"> <!-- Div disposta em linha flex -->
-        <input type="text" id="busca-op-saida" placeholder="OP-YYYYMMDD-XXXX"> <!-- Input de busca por número da OP -->
-        <button class="btn btn-secondary" onclick="buscarOperacaoManual('SAIDA')">Buscar</button> <!-- Botão de acionamento da busca -->
-      </div> <!-- Fim da div disposta em linha flex -->
-    </section> <!-- Fim da seção de cartão -->
+  <main class="container">
+    <section class="card">
+      <h2>Localizar Operação para Encerramento</h2>
+      <div class="form-group-row">
+        <input type="text" id="busca-op-saida" placeholder="OP-YYYYMMDD-XXXX">
+        <button class="btn btn-secondary" onclick="buscarOperacaoManual('SAIDA')">Buscar</button>
+      </div>
+    </section>
 
-    <section id="painel-saida" class="card hidden"> <!-- Seção oculta para encerramento -->
-      <h3>Consolidação de Dados da Operação</h3> <!-- Título da seção oculta -->
-      <div class="grid-read-only"> <!-- Div em grid para dados fixos -->
-        <p><strong>OP:</strong> <span id="saida-op"></span></p> <!-- Exibe a OP -->
-        <p><strong>Placa:</strong> <span id="saida-placa"></span></p> <!-- Exibe a Placa -->
-        <p><strong>Motorista:</strong> <span id="saida-motorista"></span></p> <!-- Exibe o Motorista -->
-        <p><strong>Peso Entrada:</strong> <span id="saida-peso-entrada"></span> kg</p> <!-- Exibe Peso de Entrada -->
-        <p><strong>Conferente:</strong> <span id="saida-conferente"></span></p> <!-- Exibe Nome do Conferente -->
-      </div> <!-- Fim da div em grid -->
+    <section id="painel-saida" class="card hidden">
+      <h3>Consolidação de Dados da Operação</h3>
+      <div class="grid-read-only">
+        <p><strong>OP:</strong> <span id="saida-op"></span></p>
+        <p><strong>Placa:</strong> <span id="saida-placa"></span></p>
+        <p><strong>Motorista:</strong> <span id="saida-motorista"></span></p>
+        <p><strong>Peso Entrada:</strong> <span id="saida-peso-entrada"></span> kg</p>
+        <p><strong>Conferente:</strong> <span id="saida-conferente"></span></p>
+      </div>
 
-      <form id="form-pesagem-saida" onsubmit="event.preventDefault(); processarSaida();"> <!-- Form de finalização de saída do caminhão -->
-        <div class="form-group"> <!-- Contêiner de input do peso final -->
-          <label for="pesoSaida">PESO DE SAÍDA (KG) *</label> <!-- Rótulo para Peso de Saída -->
-          <input type="number" id="pesoSaida" step="0.01" required oninput="calcularLiquidoDinamico()"> <!-- Campo numérico com evento dinâmico de cálculo -->
-        </div> <!-- Fim do contêiner de input -->
+      <form id="form-pesagem-saida" onsubmit="event.preventDefault(); processarSaida();">
+        <div class="form-group">
+          <label for="pesoSaida">PESO DE SAÍDA (KG) *</label>
+          <input type="number" id="pesoSaida" step="0.01" required oninput="calcularLiquidoDinamico()">
+        </div>
 
-        <div class="resultado-balanca"> <!-- Caixa para exibição do resultado do peso líquido -->
-          <h4>Peso Líquido Calculado:</h4> <!-- Título do peso líquido -->
-          <span id="display-peso-liquido" class="destaque-peso">0.00 kg</span> <!-- Elemento com valor recalculado em tempo real -->
-        </div> <!-- Fim da caixa de resultado -->
+        <div class="resultado-balanca">
+          <h4>Peso Líquido Calculado:</h4>
+          <span id="display-peso-liquido" class="destaque-peso">0.00 kg</span>
+        </div>
 
-        <div id="alerta-validacao-peso" class="alert alert-danger hidden"> <!-- Mensagem de alerta de peso inválido caso haja erro -->
-          ATENÇÃO: O peso de saída não pode ser maior que o peso de entrada para operações de carregamento. <!-- Texto explicativo do erro -->
-        </div> <!-- Fim do alerta -->
+        <div id="alerta-validacao-peso" class="alert alert-danger hidden">
+          ATENÇÃO: O peso de saída não pode ser maior que o peso de entrada para operações de carregamento.
+        </div>
 
-        <button type="submit" id="btn-finalizar-operacao" class="btn btn-success btn-block">FINALIZAR OPERAÇÃO E LIBERAR VEÍCULO</button> <!-- Botão de conclusão geral -->
-      </form> <!-- Fim do form -->
-    </section> <!-- Fim da seção oculta -->
-  </main> <!-- Fim do container -->
-  <script type="module" src="script.js"></script> <!-- Importação do script JS com módulos -->
-</body> <!-- Fim da tag body -->
-</html> <!-- Fim da tag html -->
+        <button type="submit" id="btn-finalizar-operacao" class="btn btn-success btn-block">FINALIZAR OPERAÇÃO E LIBERAR VEÍCULO</button>
+      </form>
+    </section>
+  </main>
+  <script type="module" src="script.js"></script>
+</body>
+</html>

@@ -1,73 +1,77 @@
-<!DOCTYPE html> <!-- Define tipo HTML5 -->
-<html lang="pt-BR"> <!-- Idioma da página -->
-<head> <!-- Cabeçalho da página -->
-  <meta charset="UTF-8"> <!-- Codificação UTF-8 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Viewport mobile -->
-  <title>Carregamento - Transportadora PRocha</title> <!-- Título atualizado da página -->
-  <link rel="icon" type="image/jpeg" href="img/logoPRocha.jpeg"> <!-- Favicon da Transportadora PRocha -->
-  <link rel="stylesheet" href="style.css"> <!-- Link com CSS global -->
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script> <!-- Leitor QR Code JS -->
-</head> <!-- Fim do cabeçalho -->
-<body> <!-- Início do body -->
-  <header class="main-header"> <!-- Header do topo -->
-    <div class="logo-container"> <!-- Contêiner da logo -->
-      <img src="img/logoPRocha.jpeg" alt="Logo Transportadora PRocha" class="system-logo"> <!-- Imagem do logo PRocha -->
-      <div> <!-- Div de títulos -->
-        <h1>Transportadora PRocha</h1> <!-- Nome principal da empresa -->
-        <span class="system-title">Gestão de Carregamento & Descarga</span> <!-- Subtítulo -->
-      </div> <!-- Fim da div de títulos -->
-    </div> <!-- Fim do contêiner da logo -->
-    <nav class="nav-menu"> <!-- Menu com links de páginas -->
-      <a href="index.html">Entrada</a> <!-- Link de entrada -->
-      <a href="balanca-entrada.html">Balança Entrada</a> <!-- Link de balança entrada -->
-      <a href="carregamento.html" class="active">Carregamento</a> <!-- Link ativo de carregamento -->
-      <a href="balanca-saida.html">Balança Saída</a> <!-- Link de balança saída -->
-    </nav> <!-- Fim do menu de links -->
-  </header> <!-- Fim do header -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carregamento & Descarga - Transportadora Paulão</title>
+  <link rel="icon" type="image/jpeg" href="img/LogoTransportadora.jpeg">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+<body>
+  <header class="main-header">
+    <div class="logo-container">
+      <img src="img/LogoTransportadora.jpeg" alt="Logo Transportadora Paulão" class="system-logo">
+      <div>
+        <h1>Transportadora Paulão</h1>
+        <span class="system-title">Gestão de Carregamento & Descarga</span>
+      </div>
+    </div>
+    <nav class="nav-menu">
+      <a href="index.html">Entrada</a>
+      <a href="balanca-entrada.html">Balança Entrada</a>
+      <a href="carregamento.html" class="active">Carregamento / Descarga</a>
+      <a href="balanca-saida.html">Balança Saída</a>
+      <a href="administrativo.html">Painel Admin</a>
+    </nav>
+  </header>
 
-  <main class="container"> <!-- Conteúdo principal -->
-    <section class="card"> <!-- Seção de consulta de OP -->
-      <h2>Localizar Operação de Pátio</h2> <!-- Título do card -->
-      <div class="form-group-row"> <!-- Grupo em linha -->
-        <input type="text" id="busca-op-carregamento" placeholder="Número OP-YYYYMMDD-XXXX"> <!-- Input da busca por OP -->
-        <button class="btn btn-secondary" onclick="buscarOperacaoManual('CARREGAMENTO')">Buscar</button> <!-- Botão de envio de busca -->
-      </div> <!-- Fim do grupo em linha -->
-    </section> <!-- Fim da seção de consulta -->
+  <main class="container">
+    <section class="card">
+      <h2>Localizar Operação de Pátio</h2>
+      <div class="form-group-row">
+        <input type="text" id="busca-op-carregamento" placeholder="Número OP-YYYYMMDD-XXXX">
+        <button class="btn btn-secondary" onclick="buscarOperacaoManual('CARREGAMENTO')">Buscar</button>
+      </div>
+    </section>
 
-    <section id="secao-processo-carregamento" class="card hidden"> <!-- Bloco escondido de controle de doca -->
-      <h3>Controle de Doca</h3> <!-- Título de doca -->
-      <div class="grid-read-only"> <!-- Dados informativos do veículo -->
-        <p><strong>OP:</strong> <span id="carr-op"></span></p> <!-- span para OP -->
-        <p><strong>Placa:</strong> <span id="carr-placa"></span></p> <!-- span para Placa -->
-        <p><strong>Peso Entrada:</strong> <span id="carr-peso"></span> kg</p> <!-- span para peso em kg -->
-      </div> <!-- Fim dos dados informativos -->
+    <section id="secao-processo-carregamento" class="card hidden">
+      <h3>Controle de Doca</h3>
+      <div class="grid-read-only">
+        <p><strong>OP:</strong> <span id="carr-op"></span></p>
+        <p><strong>Placa:</strong> <span id="carr-placa"></span></p>
+        <p><strong>Peso Entrada:</strong> <span id="carr-peso">0.00</span> kg</p>
+      </div>
 
-      <div id="fase-inicio" class="fase-box"> <!-- Bloco de início de etapa -->
-        <h4>Iniciar Etapa</h4> <!-- Título de início -->
-        <div class="form-group"> <!-- Grupo do tipo de operação -->
-          <label for="tipoOperacao">Tipo de Operação</label> <!-- Rótulo para operação -->
-          <select id="tipoOperacao"> <!-- Select de carregamento ou descarga -->
-            <option value="CARREGAMENTO">Carregamento</option> <!-- Opção Carregamento -->
-            <option value="DESCARGA">Descarga</option> <!-- Opção Descarga -->
-          </select> <!-- Fim do select -->
-        </div> <!-- Fim do grupo -->
-        <button class="btn btn-primary" onclick="iniciarEtapaCarregamento()">Iniciar Processo</button> <!-- Botão para disparar o processo -->
-      </div> <!-- Fim do bloco de início -->
+      <!-- FASE 1: Seleção e Início -->
+      <div id="fase-inicio" class="fase-box">
+        <h4>Iniciar Etapa</h4>
+        <div class="form-group">
+          <label for="tipoOperacao">Tipo de Operação</label>
+          <select id="tipoOperacao">
+            <option value="CARREGAMENTO">Carregamento</option>
+            <option value="DESCARGA">Descarga</option>
+          </select>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="iniciarEtapaCarregamento()">Iniciar Processo</button>
+      </div>
 
-      <div id="fase-fim" class="fase-box hidden"> <!-- Bloco de encerramento da conferência escondido -->
-        <h4>Finalizar e Conferir</h4> <!-- Título da finalização -->
-        <div class="form-group"> <!-- Grupo para o nome do conferente -->
-          <label for="nomeConferente">Nome do Conferente *</label> <!-- Rótulo conferente -->
-          <input type="text" id="nomeConferente" required> <!-- Input do conferente -->
-        </div> <!-- Fim do grupo conferente -->
-        <div class="form-group"> <!-- Grupo para observações -->
-          <label for="observacoesConferencia">Observações / Avarias / Divergências</label> <!-- Rótulo de observações -->
-          <textarea id="observacoesConferencia" rows="3"></textarea> <!-- Textarea de notas -->
-        </div> <!-- Fim do grupo observações -->
-        <button class="btn btn-success" onclick="finalizarEtapaCarregamento()">Finalizar Carregamento/Descarga</button> <!-- Botão para salvar a conferência -->
-      </div> <!-- Fim do bloco de encerramento -->
-    </section> <!-- Fim do bloco de controle de doca -->
-  </main> <!-- Fim da tag main -->
-  <script type="module" src="script.js"></script> <!-- Módulo JS -->
-</body> <!-- Fim do body -->
-</html> <!-- Fim do html -->
+      <!-- FASE 2: Finalização do Processo de Doca -->
+      <div id="fase-fim" class="fase-box hidden">
+        <h4 id="titulo-fase-fim">Finalizar e Conferir</h4>
+        <div class="form-group">
+          <label for="nomeConferente">Nome do Conferente *</label>
+          <input type="text" id="nomeConferente" required placeholder="Ex: Carlos Oliveira">
+        </div>
+        <div class="form-group">
+          <label for="observacoesConferencia">Observações / Avarias / Divergências</label>
+          <textarea id="observacoesConferencia" rows="3" placeholder="Registre avarias ou observações da carga..."></textarea>
+        </div>
+        <button type="button" class="btn btn-success" onclick="finalizarEtapaCarregamento()">Finalizar Carregamento / Descarga</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>

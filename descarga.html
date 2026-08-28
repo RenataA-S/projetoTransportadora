@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ficha de Descarga - Tuberculose (TB)</title>
+  <style>
+    :root {
+      --primary: #0056b3;
+      --primary-hover: #004085;
+      --bg-color: #f8f9fa;
+      --card-bg: #ffffff;
+      --border-color: #dee2e6;
+      --text-color: #212529;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      background-color: var(--card-bg);
+      width: 100%;
+      max-width: 850px;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border-color);
+    }
+
+    header {
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    p.subtitle {
+      margin: 4px 0 0 0;
+      font-size: 0.875rem;
+      color: #6c757d;
+    }
+
+    fieldset {
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 20px;
+      background-color: #fff;
+    }
+
+    legend {
+      font-weight: 600;
+      color: var(--primary);
+      padding: 0 8px;
+      font-size: 0.95rem;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .form-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 200px;
+    }
+
+    .form-group.full-width {
+      flex: 100%;
+    }
+
+    label {
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 0.95rem;
+      background-color: #fff;
+      transition: border-color 0.15s ease-in-out;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .btn-submit {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-submit:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-print {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    .btn-print:hover {
+      background-color: #5a6268;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Estilos para impressão/PDF */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .container {
+        box-shadow: none;
+        border: none;
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+      }
+      .actions {
+        display: none;
+      }
+      input, select, textarea {
+        border: none;
+        border-bottom: 1px solid #000;
+        border-radius: 0;
+        padding: 2px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Vigilância Epidemiológica - Tuberculose</h1>
+    <p class="subtitle">Ficha de Registro de Descarga / Encerramento de Caso</p>
+  </header>
+  
+  <form id="formDescargaTB">
+    
+    <!-- 1. Identificação -->
+    <fieldset>
+      <legend>1. Identificação do Paciente</legend>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="idPaciente">Prontuário / ID Paciente *</label>
+          <input type="number" id="idPaciente" name="idPaciente" required placeholder="Ex: 1024">
+        </div>
+        <div class="form-group">
+          <label for="numeroSinan">Nº Notificação SINAN</label>
+          <input type="text" id="numeroSinan" name="numeroSinan" placeholder="Ex: 8593021">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="nomePaciente">Nome Completo do Paciente *</label>
+          <input type="text" id="nomePaciente" name="nomePaciente" required placeholder="Nome do paciente">
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- 2. Dados do Tratamento e Encerramento -->
+    <fieldset>
+      <legend>2. Dados do Encerramento</legend>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="dataInicio">Data de Início do Tratamento *</label>
+          <input type="date" id="dataInicio" name="dataInicio" required>
+        </div>
+        <div class="form-group">
+          <label for="dataDescarga">Data da Descarga / Alta *</label>
+          <input type="date" id="dataDescarga" name="dataDescarga" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="motivoEncerramento">Motivo da Descarga (Situação de Encerramento) *</label>
+          <select id="motivoEncerramento" name="motivoEncerramento" required onchange="toggleUnidadeDestino()">
+            <option value="">-- Selecione o motivo --</option>
+            <option value="Cura">Cura</option>
+            <option value="Tratamento Completo">Tratamento Completo</option>
+            <option value="Óbito por TB">Óbito por TB</option>
+            <option value="Óbito por Outras Causas">Óbito por Outras Causas</option>
+            <option value="Abandono">Abandono / Perda de Seguimento</option>
+            <option value="Transferência">Transferência</option>
+            <option value="Mudança de Esquema">Falência / Mudança de Esquema</option>
+            <option value="Diagnóstico Alterado">Diagnóstico Alterado</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row hidden" id="groupUnidadeDestino">
+        <div class="form-group full-width">
+          <label for="unidadeDestino">Unidade / Município de Destino *</label>
+          <input type="text" id="unidadeDestino" name="unidadeDestino" placeholder="Informe a unidade para onde o paciente foi transferido">
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- 3. Avaliação de Exames -->
+    <fieldset>
+      <legend>3. Avaliação de Exames Finais</legend>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="baciloscopiaFinal">Baciloscopia de Escarro Final</label>
+          <select id="baciloscopiaFinal" name="baciloscopiaFinal">
+            <option value="Nao Realizada">Não Realizada</option>
+            <option value="Negativa">Negativa</option>
+            <option value="Positiva">Positiva</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="raioXFinal">Raio-X de Tórax Final</label>
+          <select id="raioXFinal" name="raioXFinal">
+            <option value="Nao Realizado">Não Realizado</option>
+            <option value="Melhora/Cura">Melhora / Cura Radiológica</option>
+            <option value="Lesao Estavel">Lesão Estável</option>
+            <option value="Piora">Piora Radiológica</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="observacoes">Observações Clínicas / Recomendações</label>
+          <textarea id="observacoes" name="observacoes" placeholder="Observações adicionais..."></textarea>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- 4. Responsável Técnico -->
+    <fieldset>
+      <legend>4. Responsável pela Descarga</legend>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="profissional">Nome do Profissional *</label>
+          <input type="text" id="profissional" name="profissional" required placeholder="Nome do médico ou enfermeiro">
+        </div>
+        <div class="form-group">
+          <label for="registroProfissional">Registro Profissional (CRM/COREN) *</label>
+          <input type="text" id="registroProfissional" name="registroProfissional" required placeholder="Ex: CRM/SP 123456">
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Botões de Ação -->
+    <div class="actions">
+      <button type="submit" class="btn-submit">Salvar Descarga (JSON)</button>
+      <button type="button" class="btn-print" onclick="window.print()">Imprimir / Gerar PDF</button>
+    </div>
+
+  </form>
+</div>
+
+<script>
+  // Exibe o campo de destino apenas se a opção for 'Transferência'
+  function toggleUnidadeDestino() {
+    const motivoSelect = document.getElementById('motivoEncerramento');
+    const campoDestino = document.getElementById('groupUnidadeDestino');
+    const inputDestino = document.getElementById('unidadeDestino');
+
+    if (motivoSelect.value === 'Transferência') {
+      campoDestino.classList.remove('hidden');
+      inputDestino.required = true;
+    } else {
+      campoDestino.classList.add('hidden');
+      inputDestino.required = false;
+      inputDestino.value = '';
+    }
+  }
+
+  // Lógica ao submeter o formulário
+  document.getElementById('formDescargaTB').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const dataInicio = new Date(document.getElementById('dataInicio').value);
+    const dataDescarga = new Date(document.getElementById('dataDescarga').value);
+
+    // Validação lógica de datas
+    if (dataDescarga < dataInicio) {
+      alert('Erro: A data da descarga não pode ser anterior à data de início do tratamento.');
+      return;
+    }
+
+    // Coleta dos dados do formulário
+    const formData = new FormData(this);
+    const payload = Object.fromEntries(formData.entries());
+
+    console.log("Payload enviado:", payload);
+    
+    // Download do arquivo JSON resultante
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `descarga_tb_paciente_${payload.idPaciente || 'registro'}.json`;
+    link.click();
+    
+    alert('Descarga de TB registrada com sucesso! Arquivo JSON gerado.');
+  });
+</script>
+
+</body>
+</html>
