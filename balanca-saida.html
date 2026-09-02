@@ -3,66 +3,76 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Balança de Saída - Transportadora Paulão</title>
+  <title>Balança Saída - Transportadora Paulão</title>
   <link rel="icon" type="image/jpeg" href="img/LogoTransportadora.jpeg">
   <link rel="stylesheet" href="style.css">
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>
+
   <header class="main-header">
     <div class="logo-container">
       <img src="img/LogoTransportadora.jpeg" alt="Logo Transportadora Paulão" class="system-logo">
       <div>
         <h1>Transportadora Paulão</h1>
-        <span class="system-title">Balança Rodoviária - Saída</span>
+        <span class="system-title">Balança Rodoviária - Pesagem de Saída</span>
       </div>
     </div>
+    
     <nav class="nav-menu">
       <a href="index.html">Entrada</a>
-      <a href="balanca-entrada.html">Balança Entrada</a>
       <a href="carregamento.html">Carregamento</a>
       <a href="balanca-saida.html" class="active">Balança Saída</a>
+      <a href="administrativo.html">Painel Admin</a>
+      <button id="btn-logout" class="btn-logout">Sair</button>
     </nav>
   </header>
 
   <main class="container">
+    
+    <!-- Localizar OP -->
     <section class="card">
-      <h2>Localizar Operação para Encerramento</h2>
-      <div class="form-group-row">
-        <input type="text" id="busca-op-saida" placeholder="OP-YYYYMMDD-XXXX">
-        <button class="btn btn-secondary" onclick="buscarOperacaoManual('SAIDA')">Buscar</button>
-      </div>
-    </section>
-
-    <section id="painel-saida" class="card hidden">
-      <h3>Consolidação de Dados da Operação</h3>
-      <div class="grid-read-only">
-        <p><strong>OP:</strong> <span id="saida-op"></span></p>
-        <p><strong>Placa:</strong> <span id="saida-placa"></span></p>
-        <p><strong>Motorista:</strong> <span id="saida-motorista"></span></p>
-        <p><strong>Peso Entrada:</strong> <span id="saida-peso-entrada"></span> kg</p>
-        <p><strong>Conferente:</strong> <span id="saida-conferente"></span></p>
-      </div>
-
-      <form id="form-pesagem-saida" onsubmit="event.preventDefault(); processarSaida();">
-        <div class="form-group">
-          <label for="pesoSaida">PESO DE SAÍDA (KG) *</label>
-          <input type="number" id="pesoSaida" step="0.01" required oninput="calcularLiquidoDinamico()">
-        </div>
-
-        <div class="resultado-balanca">
-          <h4>Peso Líquido Calculado:</h4>
-          <span id="display-peso-liquido" class="destaque-peso">0.00 kg</span>
-        </div>
-
-        <div id="alerta-validacao-peso" class="alert alert-danger hidden">
-          ATENÇÃO: O peso de saída não pode ser maior que o peso de entrada para operações de carregamento.
-        </div>
-
-        <button type="submit" id="btn-finalizar-operacao" class="btn btn-success btn-block">FINALIZAR OPERAÇÃO E LIBERAR VEÍCULO</button>
+      <h2>Localizar Operação para Pesagem e Encerramento</h2>
+      <form id="form-buscar-op" class="form-row" style="display: flex; gap: 12px; margin-top: 12px;" onsubmit="event.preventDefault(); buscarOP();">
+        <input type="text" id="input-buscar-op" placeholder="Informe a OP ex: OP-20260902-9777" style="flex: 1;" required>
+        <button type="submit" class="btn btn-primary">Buscar OP</button>
       </form>
     </section>
+
+    <!-- Consolidação, Pesagem e Finalização -->
+    <section id="secao-finalizacao" class="card hidden">
+      <h2>Consolidação de Pesagem e Saída</h2>
+      
+      <div class="ticket-info" style="margin-bottom: 20px;">
+        <div class="info-row"><span>OP:</span> <strong id="resumo-op">--</strong></div>
+        <div class="info-row"><span>PLACA:</span> <strong id="resumo-placa">--</strong></div>
+        <div class="info-row"><span>MOTORISTA:</span> <strong id="resumo-motorista">--</strong></div>
+        <div class="info-row"><span>TIPO OPERAÇÃO:</span> <strong id="resumo-operacao">--</strong></div>
+      </div>
+
+      <form id="form-finalizar-op" onsubmit="event.preventDefault(); finalizarOperacao();">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="nome-conferente">NOME DO CONFERENTE DE SAÍDA *</label>
+            <input type="text" id="nome-conferente" placeholder="Ex: João Silva" required>
+          </div>
+
+          <div class="form-group">
+            <label for="horario-conferencia">HORÁRIO *</label>
+            <input type="time" id="horario-conferencia" required>
+          </div>
+
+          <div class="form-group" style="grid-column: span 2;">
+            <label for="peso-final">PESO FINAL DA BALANÇA (KG) *</label>
+            <input type="number" id="peso-final" step="0.01" placeholder="Ex: 24500" required>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 20px;">FINALIZAR OPERAÇÃO E LIBERAR VEÍCULO</button>
+      </form>
+    </section>
+
   </main>
+
   <script type="module" src="script.js"></script>
 </body>
 </html>

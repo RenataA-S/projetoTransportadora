@@ -20,35 +20,30 @@
     
     <nav class="nav-menu">
       <a href="index.html">Entrada</a>
-      <a href="balanca-entrada.html">Balança Entrada</a>
       <a href="carregamento.html">Carregamento</a>
       <a href="balanca-saida.html">Balança Saída</a>
       <a href="administrativo.html" class="active">Painel Admin</a>
-      <a href="login.html" id="btn-login-nav">Login</a>
+      <button id="btn-logout" class="btn-logout">Sair</button>
     </nav>
   </header>
 
-  <main class="container-fluid">
+  <main class="container" style="max-width: 1100px;">
     
     <!-- Cartões de Métricas e Estatísticas do Pátio -->
     <section class="card">
       <h2>Métricas e Status do Pátio em Tempo Real</h2>
-      <div class="dashboard-cards" style="margin-top: 1rem;">
-        <div class="card" style="text-align: center; margin-bottom: 0;">
+      <div class="dashboard-cards" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 1rem;">
+        <div class="card" style="text-align: center; margin-bottom: 0; padding: 16px;">
           <h4>Aguardando no Pátio</h4>
-          <span id="stat-patio" class="stat-number">0</span>
+          <span id="stat-patio" class="stat-number" style="font-size: 2rem; font-weight: bold; color: var(--primary);">0</span>
         </div>
-        <div class="card" style="text-align: center; margin-bottom: 0;">
+        <div class="card" style="text-align: center; margin-bottom: 0; padding: 16px;">
           <h4>Em Doca (Carg/Desc)</h4>
-          <span id="stat-carregando" class="stat-number">0</span>
+          <span id="stat-carregando" class="stat-number" style="font-size: 2rem; font-weight: bold; color: var(--accent);">0</span>
         </div>
-        <div class="card" style="text-align: center; margin-bottom: 0;">
+        <div class="card" style="text-align: center; margin-bottom: 0; padding: 16px;">
           <h4>Concluídos Hoje</h4>
-          <span id="stat-finalizados" class="stat-number">0</span>
-        </div>
-        <div class="card" style="text-align: center; margin-bottom: 0;">
-          <h4>Entrada Peso Total</h4>
-          <span id="stat-peso-total" class="stat-number">0.00 kg</span>
+          <span id="stat-finalizados" class="stat-number" style="font-size: 2rem; font-weight: bold; color: var(--success);">0</span>
         </div>
       </div>
     </section>
@@ -61,18 +56,15 @@
       </div>
 
       <div style="overflow-x: auto;">
-        <table class="table-custom">
+        <table class="table-custom" style="width: 100%; border-collapse: collapse; text-align: left;">
           <thead>
-            <tr>
-              <th>Nº da OP</th>
-              <th>Placa</th>
-              <th>Motorista</th>
-              <th>Data/Hora Entrada</th>
-              <th>Peso Entrada</th>
-              <th>Peso Saída</th>
-              <th>Peso Líquido</th>
-              <th>Status Atual</th>
-              <th>Ações</th>
+            <tr style="border-bottom: 2px solid var(--border-color);">
+              <th style="padding: 10px;">Nº da OP</th>
+              <th style="padding: 10px;">Placa</th>
+              <th style="padding: 10px;">Motorista</th>
+              <th style="padding: 10px;">Data/Hora Entrada</th>
+              <th style="padding: 10px;">Peso Saída (kg)</th>
+              <th style="padding: 10px;">Status Atual</th>
             </tr>
           </thead>
           <tbody id="tbody-historico">

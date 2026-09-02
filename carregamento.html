@@ -19,34 +19,33 @@
     </div>
     <nav class="nav-menu">
       <a href="index.html">Entrada</a>
-      <a href="balanca-entrada.html">Balança Entrada</a>
       <a href="carregamento.html" class="active">Carregamento / Descarga</a>
       <a href="balanca-saida.html">Balança Saída</a>
       <a href="administrativo.html">Painel Admin</a>
+      <button id="btn-logout" class="btn-logout">Sair</button>
     </nav>
   </header>
 
   <main class="container">
     <section class="card">
       <h2>Localizar Operação de Pátio</h2>
-      <div class="form-group-row">
-        <input type="text" id="busca-op-carregamento" placeholder="Número OP-YYYYMMDD-XXXX">
+      <div class="form-group-row" style="display: flex; gap: 12px; margin-top: 12px;">
+        <input type="text" id="busca-op-carregamento" placeholder="Número OP-YYYYMMDD-XXXX" style="flex: 1;">
         <button class="btn btn-secondary" onclick="buscarOperacaoManual('CARREGAMENTO')">Buscar</button>
       </div>
     </section>
 
     <section id="secao-processo-carregamento" class="card hidden">
       <h3>Controle de Doca</h3>
-      <div class="grid-read-only">
+      <div class="info-box" style="margin: 12px 0;">
         <p><strong>OP:</strong> <span id="carr-op"></span></p>
         <p><strong>Placa:</strong> <span id="carr-placa"></span></p>
-        <p><strong>Peso Entrada:</strong> <span id="carr-peso">0.00</span> kg</p>
       </div>
 
       <!-- FASE 1: Seleção e Início -->
       <div id="fase-inicio" class="fase-box">
         <h4>Iniciar Etapa</h4>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 12px;">
           <label for="tipoOperacao">Tipo de Operação</label>
           <select id="tipoOperacao">
             <option value="CARREGAMENTO">Carregamento</option>
@@ -59,11 +58,11 @@
       <!-- FASE 2: Finalização do Processo de Doca -->
       <div id="fase-fim" class="fase-box hidden">
         <h4 id="titulo-fase-fim">Finalizar e Conferir</h4>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 12px;">
           <label for="nomeConferente">Nome do Conferente *</label>
           <input type="text" id="nomeConferente" required placeholder="Ex: Carlos Oliveira">
         </div>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 12px;">
           <label for="observacoesConferencia">Observações / Avarias / Divergências</label>
           <textarea id="observacoesConferencia" rows="3" placeholder="Registre avarias ou observações da carga..."></textarea>
         </div>

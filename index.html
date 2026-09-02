@@ -1,67 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrada de Veículos - Transportadora Paulão</title>
-    <link rel="icon" type="image/jpeg" href="./img/LogoTransportadoraFaveIcon.jpeg">
-    <link rel="stylesheet" href="style.css">
-    <!-- Biblioteca kjua para geração do QR Code do Ticket -->
-    <script src="https://cdn.jsdelivr.net/npm/kjua@0.9.0/dist/kjua.min.js"></script>
-    <style>
-        .qr-container-card { max-width: 520px; margin: 20px auto; }
-        .form-qr label { display: block; text-align: left; margin: 10px 0 3px; font-weight: bold; font-size: 0.9rem; }
-        .form-row { display: flex; gap: 10px; }
-        .form-row .form-group { flex: 1; }
-        .uppercase-input { text-transform: uppercase; }
-        .capitalize-input { text-transform: capitalize; }
-        
-        /* Estilização da área do Ticket de Entrada */
-        .ticket-box {
-            margin-top: 20px;
-            padding: 15px;
-            border: 2px dashed #0b4f8c;
-            border-radius: 8px;
-            background-color: #f8f9fa;
-            text-align: center;
-        }
-        .ticket-header {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #0b4f8c;
-            margin-bottom: 5px;
-        }
-        .ticket-op {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #333;
-            margin: 5px 0;
-        }
-        #canvas-qr {
-            margin: 15px auto;
-            display: flex;
-            justify-content: center;
-        }
-        #canvas-qr canvas, #canvas-qr img {
-            border: 1px solid #ddd;
-            padding: 5px;
-            background: #fff;
-        }
-
-        /* Regra de impressão para o Ticket */
-        @media print {
-            body * { visibility: hidden; }
-            #secao-ticket-gerado, #secao-ticket-gerado * { visibility: visible; }
-            #secao-ticket-gerado {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                border: none;
-            }
-            .btn-ticket-group { display: none !important; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrada de Veículos - Transportadora Paulão</title>
+  <link rel="icon" type="image/jpeg" href="img/LogoTransportadora.jpeg">
+  <link rel="stylesheet" href="style.css">
+  <!-- Lib para geração de QR Code na Entrada -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -70,160 +16,115 @@
       <img src="img/LogoTransportadora.jpeg" alt="Logo Transportadora Paulão" class="system-logo">
       <div>
         <h1>Transportadora Paulão</h1>
-        <span class="system-title">Registro de Entrada e Emissão de Ticket QR</span>
+        <span class="system-title">Controle de Portaria & Pátio</span>
       </div>
     </div>
+    
     <nav class="nav-menu">
       <a href="index.html" class="active">Entrada</a>
-      <a href="balanca-entrada.html">Balança Entrada</a>
-      <a href="carregamento.html">Carregamento / Descarga</a>
+      <a href="carregamento.html">Carregamento</a>
       <a href="balanca-saida.html">Balança Saída</a>
-      <a href="login.html" id="btn-login-nav">Sair</a>
+      <a href="administrativo.html">Painel Admin</a>
+      <button id="btn-logout" class="btn-logout">Sair</button>
     </nav>
   </header>
 
   <main class="container">
-    <!-- Formuário de Entrada / Portaria -->
-    <section class="card qr-container-card">
-        <h2>Registro de Veículo / Portaria</h2>
-        
-        <form class="form-qr" id="form-entrada" onsubmit="event.preventDefault(); cadastrarEntrada();">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="placa">Placa do Veículo *</label>
-                    <input type="text" id="placa" class="uppercase-input" placeholder="ABC-1234 / ABC1D23" required>
-                </div>
-                <div class="form-group">
-                    <label for="tipoVeiculo">Tipo de Veículo *</label>
-                    <select id="tipoVeiculo" required style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-                        <option value="">Selecione...</option>
-                        <option value="3/4">3/4</option>
-                        <option value="Toco">Toco</option>
-                        <option value="Truck">Truck</option>
-                        <option value="Carreta 2 Eixos">Carreta 2 Eixos</option>
-                        <option value="Carreta 3 Eixos">Carreta 3 Eixos</option>
-                        <option value="Bitrem">Bitrem</option>
-                        <option value="Rodotrem">Rodotrem</option>
-                        <option value="Furgão / Van">Furgão / Van</option>
-                        <option value="Outro">Outro</option>
-                    </select>
-                </div>
-            </div>
+    
+    <!-- Cadastro e Registro de Entrada -->
+    <section class="card">
+      <div class="card-header">
+        <h2>Registro de Entrada de Veículo</h2>
+        <p class="card-subtitle">Cadastre o veículo para liberar acesso ao pátio e gerar a Ordem de Pátio (OP)</p>
+      </div>
 
-            <div class="form-group">
-                <label for="operacao">Operação *</label>
-                <select id="operacao" required style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-                    <option value="Carregamento">Carregamento</option>
-                    <option value="Descarga">Descarga</option>
-                </select>
-            </div>
+      <form id="form-entrada" onsubmit="event.preventDefault(); salvarEntrada();">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="placa-veiculo">PLACA DO VEÍCULO *</label>
+            <input type="text" id="placa-veiculo" placeholder="Ex: ABC1D23" maxlength="8" required style="text-transform: uppercase;">
+          </div>
 
-            <div class="form-group">
-                <label for="motorista">Nome do Motorista *</label>
-                <input type="text" id="motorista" class="capitalize-input" placeholder="Ex: João da Silva" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="cpfMotorista">CPF do Motorista *</label>
-                <input type="text" id="cpfMotorista" placeholder="000.000.000-00" required>
-            </div>
+          <div class="form-group">
+            <label for="tipo-operacao">TIPO DE OPERAÇÃO *</label>
+            <select id="tipo-operacao" required>
+              <option value="CARREGAMENTO">Carregamento</option>
+              <option value="DESCARGA">Descarga</option>
+            </select>
+          </div>
 
-            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
-            
-            <div class="form-group">
-                <label for="ajudante">Nome do Ajudante (Opcional)</label>
-                <input type="text" id="ajudante" class="capitalize-input" placeholder="Ex: Carlos Eduardo">
-            </div>
-            
-            <div class="form-group">
-                <label for="cpfAjudante">CPF do Ajudante (Opcional)</label>
-                <input type="text" id="cpfAjudante" placeholder="000.000.000-00">
-            </div>
+          <div class="form-group">
+            <label for="nome-motorista">NOME DO MOTORISTA *</label>
+            <input type="text" id="nome-motorista" placeholder="Nome completo do condutor" required>
+          </div>
 
-            <div class="form-row" style="margin-top: 15px;">
-                <button type="submit" class="btn btn-primary">Salvar Entrada e Gerar QR</button>
-                <button type="button" class="btn btn-secondary" onclick="gerarApenasQR()">Gerar QR prévio</button>
-            </div>
-        </form>
+          <div class="form-group">
+            <label for="cpf-motorista">CPF DO MOTORISTA *</label>
+            <input type="text" id="cpf-motorista" placeholder="000.000.000-00" required>
+          </div>
 
-        <!-- Cartão / Ticket com o QR Code Gerado -->
-        <div id="secao-ticket-gerado" class="ticket-box hidden">
-            <div class="ticket-header">TRANSPORTADORA PAULÃO</div>
-            <div style="font-size: 0.85rem; color: #666;">TICKET DE ENTRADA NO PÁTIO</div>
-            <div id="ticket-op" class="ticket-op">OP-00000000-0000</div>
-            
-            <div id="canvas-qr"></div>
+          <div class="form-group">
+            <label for="nome-ajudante">NOME DO AJUDANTE <span class="badge-opcional">(Opcional)</span></label>
+            <input type="text" id="nome-ajudante" placeholder="Nome do ajudante">
+          </div>
 
-            <div style="font-size: 0.9rem; text-align: left; margin-top: 10px; background: #fff; padding: 10px; border-radius: 4px; border: 1px solid #eee;">
-                <p style="margin: 3px 0;"><strong>Placa:</strong> <span id="ticket-placa">-</span></p>
-                <p style="margin: 3px 0;"><strong>Motorista:</strong> <span id="ticket-motorista">-</span></p>
-                <p style="margin: 3px 0;"><strong>Operação:</strong> <span id="ticket-operacao">-</span></p>
-            </div>
-
-            <div class="btn-ticket-group" style="margin-top: 15px; display: flex; gap: 10px;">
-                <button class="btn btn-success" style="flex: 1;" onclick="imprimirTicket()">Imprimir Ticket</button>
-                <button class="btn btn-primary" style="flex: 1;" onclick="avancarParaBalanca()">Ir para Balança</button>
-            </div>
+          <div class="form-group">
+            <label for="cpf-ajudante">CPF DO AJUDANTE <span class="badge-opcional">(Opcional)</span></label>
+            <input type="text" id="cpf-ajudante" placeholder="000.000.000-00">
+          </div>
         </div>
+
+        <div class="actions-wrapper">
+          <button type="submit" class="btn btn-primary">Registrar Entrada no Banco</button>
+          <button type="button" class="btn btn-outline" onclick="gerarQRDireto()">Gerar Ticket Prévio</button>
+        </div>
+      </form>
     </section>
+
+    <!-- Ticket Impresso com QR Code -->
+    <section id="area-ticket" class="card card-ticket hidden">
+      <div class="ticket-wrapper">
+        <div class="ticket-header">
+          <h3>TRANSPORTADORA PAULÃO</h3>
+          <p>TICKET DE CONTROLE DE PÁTIO</p>
+        </div>
+
+        <div class="qr-code-frame">
+          <div id="qrcode-container"></div>
+        </div>
+
+        <div class="ticket-info">
+          <div class="info-row">
+            <span>Nº OP:</span>
+            <strong id="ticket-op">--</strong>
+          </div>
+          <div class="info-row">
+            <span>PLACA:</span>
+            <strong id="ticket-placa">--</strong>
+          </div>
+          <div class="info-row">
+            <span>MOTORISTA:</span>
+            <strong id="ticket-motorista">--</strong>
+          </div>
+          <div class="info-row">
+            <span>OPERAÇÃO:</span>
+            <strong id="ticket-operacao">--</strong>
+          </div>
+          <div class="info-row">
+            <span>ENTRADA:</span>
+            <strong id="ticket-data">--</strong>
+          </div>
+        </div>
+
+        <div class="ticket-actions">
+          <button class="btn btn-secondary" onclick="window.print()">Imprimir Ticket</button>
+          <button class="btn btn-outline" onclick="document.getElementById('area-ticket').classList.add('hidden')">Fechar</button>
+        </div>
+      </div>
+    </section>
+
   </main>
 
-  <!-- Módulo JavaScript principal -->
   <script type="module" src="script.js"></script>
-
-  <!-- Funções globais de apoio ao Ticket no index.html -->
-  <script>
-    function gerarApenasQR() {
-        const placa = document.getElementById("placa").value.trim().toUpperCase();
-        const motorista = document.getElementById("motorista").value.trim();
-        const operacao = document.getElementById("operacao").value;
-        const containerQr = document.getElementById("canvas-qr");
-        const ticketBox = document.getElementById("secao-ticket-gerado");
-
-        if (!placa || !motorista) {
-            alert("Preencha ao menos a Placa e o Motorista para gerar o pré-ticket.");
-            return;
-        }
-
-        if (typeof kjua !== "function") {
-            alert("A biblioteca kjua não foi carregada corretamente.");
-            return;
-        }
-
-        containerQr.innerHTML = "";
-        
-        const dadosQr = `PLACA: ${placa}\nMOTORISTA: ${motorista}\nOPERACAO: ${operacao}`;
-
-        const qrCanvas = kjua({
-            text: dadosQr,
-            render: 'canvas',
-            size: 180,
-            fill: '#0b4f8c',
-            back: '#ffffff',
-            crisp: true
-        });
-
-        containerQr.appendChild(qrCanvas);
-        document.getElementById("ticket-op").innerText = "PRÉ-REGISTRO";
-        document.getElementById("ticket-placa").innerText = placa;
-        document.getElementById("ticket-motorista").innerText = motorista;
-        document.getElementById("ticket-operacao").innerText = operacao;
-
-        ticketBox.classList.remove("hidden");
-    }
-
-    function imprimirTicket() {
-        window.print();
-    }
-
-    function avancarParaBalanca() {
-        const op = document.getElementById("ticket-op").innerText;
-        if (op && op !== "PRÉ-REGISTRO") {
-            window.location.href = `balanca-entrada.html?op=${op}`;
-        } else {
-            alert("Registre primeiro a entrada antes de prosseguir para a balança.");
-        }
-    }
-  </script>
 </body>
 </html>

@@ -4,28 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Transportadora Paulão</title>
-  <link rel="icon" type="image/jpeg" href="img/LogoTransportadora.jpeg">
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="login-body">
-  <div class="login-card">
-    <div style="text-align: center; margin-bottom: 1rem;">
-      <img src="img/LogoTransportadora.jpeg" alt="Logo Transportadora Paulão" style="height: 70px; width: auto; object-fit: contain;">
-    </div>
-    <h2 style="text-align: center; margin-bottom: 1.5rem;">Transportadora Paulão</h2>
-    <form id="form-login" onsubmit="event.preventDefault(); realizarLogin();">
-      <div class="form-group">
-        <label for="login-email">E-mail Operacional</label>
-        <input type="email" id="login-email" required placeholder="usuario@transportadorapaulao.com">
+<body style="display: flex; justify-content: center; align-items: center; min-height: 100vh;">
+
+  <div class="card" style="width: 100%; max-width: 400px; text-align: center;">
+    <img src="img/LogoTransportadora.jpeg" alt="Logo" class="system-logo" style="height: 60px; margin-bottom: 12px;">
+    <h2>Acesso ao Sistema</h2>
+
+    <form onsubmit="event.preventDefault(); const e = document.getElementById('login-email').value; const s = document.getElementById('login-senha').value; fazerLogin(e, s);">
+      <div class="form-group" style="margin-bottom: 12px; text-align: left;">
+        <label for="login-email">E-mail / Usuário</label>
+        <input type="email" id="login-email" placeholder="usuario@paulao.com" required>
       </div>
-      <div class="form-group">
+
+      <div class="form-group" style="margin-bottom: 16px; text-align: left;">
         <label for="login-senha">Senha</label>
-        <input type="password" id="login-senha" required placeholder="******">
+        <input type="password" id="login-senha" placeholder="******" required>
       </div>
-      <button type="submit" class="btn btn-primary btn-block">ENTRAR</button>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Entrar</button>
     </form>
-    <div id="login-erro" class="alert alert-danger hidden"></div>
   </div>
+
   <script type="module" src="script.js"></script>
 </body>
 </html>
