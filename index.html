@@ -3,125 +3,332 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Entrada de Veículos - Transportadora Paulão</title>
-  <link rel="icon" type="image/jpeg" href="img/LogoTransportadora.jpeg">
+  <title>Sistema de Gestão de Pátio - Transportadora Paulão</title>
+  
   <link rel="stylesheet" href="style.css">
-  <!-- Lib para geração de QR Code na Entrada -->
+
+  <!-- Bibliotecas Externas -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <!-- Chart.js para o Gráfico do Painel Admin -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-  <header class="main-header">
+  <!-- CABEÇALHO DE NAVEGAÇÃO -->
+  <header class="main-header" id="app-header">
     <div class="logo-container">
-      <img src="img/LogoTransportadora.jpeg" alt="Logo Transportadora Paulão" class="system-logo">
+      <img src="img/LogoTransportadora.jpeg" alt="Logo Transportadora Paulão" class="system-logo" onerror="this.src='https://via.placeholder.com/46?text=LOGISTICA'">
       <div>
         <h1>Transportadora Paulão</h1>
-        <span class="system-title">Controle de Portaria & Pátio</span>
+        <span class="system-title" id="page-subtitle">Controle de Portaria & Pátio</span>
       </div>
     </div>
     
-    <nav class="nav-menu">
-      <a href="index.html" class="active">Entrada</a>
-      <a href="carregamento.html">Carregamento</a>
-      <a href="balanca-saida.html">Balança Saída</a>
-      <a href="administrativo.html">Painel Admin</a>
+    <nav class="nav-menu" id="nav-menu">
+      <a href="#" onclick="navegarPara('aba-entrada')" class="nav-link active">Entrada</a>
+      <a href="#" onclick="navegarPara('aba-carregamento')" class="nav-link">Carregamento / Descarga</a>
+      <a href="#" onclick="navegarPara('aba-balanca')" class="nav-link">Balança Saída</a>
+      <a href="#" onclick="navegarPara('aba-admin')" class="nav-link">Painel Admin</a>
       <button id="btn-logout" class="btn-logout">Sair</button>
     </nav>
   </header>
 
+  <!-- CONTEÚDO PRINCIPAL -->
   <main class="container">
-    
-    <!-- Cadastro e Registro de Entrada -->
-    <section class="card">
-      <div class="card-header">
-        <h2>Registro de Entrada de Veículo</h2>
-        <p class="card-subtitle">Cadastre o veículo para liberar acesso ao pátio e gerar a Ordem de Pátio (OP)</p>
-      </div>
 
-      <form id="form-entrada" onsubmit="event.preventDefault(); salvarEntrada();">
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="placa-veiculo">PLACA DO VEÍCULO *</label>
-            <input type="text" id="placa-veiculo" placeholder="Ex: ABC1D23" maxlength="8" required style="text-transform: uppercase;">
+    <!-- 1. ABA: ENTRADA -->
+    <div id="aba-entrada" class="aba-conteudo">
+      <section class="card">
+        <div class="card-header">
+          <h2>Registro de Entrada de Veículo</h2>
+          <p class="card-subtitle">Cadastre o veículo para liberar acesso ao pátio e gerar o código de acompanhamento</p>
+        </div>
+
+        <form id="form-entrada" onsubmit="event.preventDefault(); salvarEntrada();">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="placa-veiculo">PLACA DO VEÍCULO *</label>
+              <input type="text" id="placa-veiculo" placeholder="Ex: ABC1D23" maxlength="8" required style="text-transform: uppercase;">
+            </div>
+
+            <div class="form-group">
+              <label for="tipo-veiculo">TIPO DE VEÍCULO *</label>
+              <select id="tipo-veiculo" required>
+                <option value="">Selecione...</option>
+                <option value="Toco">Toco</option>
+                <option value="Truck">Truck</option>
+                <option value="Carreta">Carreta</option>
+                <option value="Bitrem">Bitrem</option>
+                <option value="VLC / Utilitário">VLC / Utilitário</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="tipo-operacao">TIPO DE OPERAÇÃO *</label>
+              <select id="tipo-operacao" required>
+                <option value="CARREGAMENTO">Carregamento</option>
+                <option value="DESCARGA">Descarga</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="nome-motorista">NOME DO MOTORISTA *</label>
+              <input type="text" id="nome-motorista" placeholder="Nome completo do condutor" required class="input-capitalizar">
+            </div>
+
+            <div class="form-group">
+              <label for="cpf-motorista">CPF DO MOTORISTA *</label>
+              <input type="text" id="cpf-motorista" placeholder="000.000.000-00" maxlength="14" required class="input-cpf">
+            </div>
+
+            <div class="form-group">
+              <label for="nome-ajudante">NOME DO AJUDANTE <span class="badge-opcional">(Opcional)</span></label>
+              <input type="text" id="nome-ajudante" placeholder="Nome do ajudante" class="input-capitalizar">
+            </div>
+
+            <div class="form-group">
+              <label for="cpf-ajudante">CPF DO AJUDANTE <span class="badge-opcional">(Opcional)</span></label>
+              <input type="text" id="cpf-ajudante" placeholder="000.000.000-00" maxlength="14" class="input-cpf">
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="tipo-operacao">TIPO DE OPERAÇÃO *</label>
-            <select id="tipo-operacao" required>
-              <option value="CARREGAMENTO">Carregamento</option>
-              <option value="DESCARGA">Descarga</option>
+          <div class="actions-wrapper">
+            <button type="submit" class="btn btn-primary">Registrar Entrada</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Resumo visual com QR Code -->
+      <section id="area-ticket" class="card card-ticket hidden">
+        <div class="ticket-wrapper">
+          <div class="ticket-header">
+            <h3>TRANSPORTADORA PAULÃO</h3>
+            <p>REGISTRO DE ENTRADA CONCLUÍDO</p>
+          </div>
+
+          <div class="qr-code-frame">
+            <div id="qrcode-container"></div>
+          </div>
+
+          <div class="ticket-info">
+            <div class="info-row"><span>Nº OP:</span> <strong id="ticket-op">--</strong></div>
+            <div class="info-row"><span>PLACA:</span> <strong id="ticket-placa">--</strong></div>
+            <div class="info-row"><span>MOTORISTA:</span> <strong id="ticket-motorista">--</strong></div>
+            <div class="info-row"><span>OPERAÇÃO:</span> <strong id="ticket-operacao">--</strong></div>
+            <div class="info-row"><span>ENTRADA:</span> <strong id="ticket-data">--</strong></div>
+          </div>
+
+          <div class="ticket-actions">
+            <button class="btn btn-outline" onclick="document.getElementById('area-ticket').classList.add('hidden')">Concluir</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 2. ABA: CARREGAMENTO & DESCARGA -->
+    <div id="aba-carregamento" class="aba-conteudo hidden">
+      <section class="card">
+        <h2>Localizar Operação de Pátio</h2>
+        <div id="scanner-alert" class="alert hidden"></div>
+        <div class="form-group-row" style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
+          <input type="text" id="busca-op-carregamento" placeholder="Número OP-YYYYMMDD-XXXX" style="flex: 1; min-width: 200px;">
+          <button class="btn btn-secondary" onclick="buscarOPManual()">Buscar OP</button>
+          <button id="btn-habilitar" class="btn btn-primary" onclick="habilitarCamera()">📷 Ler QR Code</button>
+        </div>
+
+        <div id="reader" class="hidden" style="width: 100%; max-width: 400px; margin: 15px auto;"></div>
+      </section>
+
+      <section id="secao-processo-carregamento" class="card hidden">
+        <h3>Controle de Doca (Carga / Descarga)</h3>
+        
+        <div class="ticket-info" style="margin: 15px 0;">
+          <div class="info-row"><span>Nº OP:</span> <strong id="carr-op">--</strong></div>
+          <div class="info-row"><span>Placa:</span> <strong id="carr-placa">--</strong></div>
+          <div class="info-row"><span>Motorista:</span> <strong id="carr-motorista">--</strong></div>
+          <div class="info-row"><span>Operação:</span> <strong id="carr-operacao">--</strong></div>
+          <div class="info-row"><span>Data/Hora Entrada:</span> <strong id="carr-entrada">--</strong></div>
+        </div>
+
+        <div id="fase-inicio">
+          <h4>Iniciar Etapa de Doca</h4>
+          <p style="font-size: 0.85rem; color: #666; margin-bottom: 10px;">Confirme o início do carregamento/descarga para liberar a próxima fase.</p>
+          <button type="button" class="btn btn-primary" onclick="iniciarEtapaCarregamento()">Iniciar Processo</button>
+        </div>
+
+        <div id="fase-fim" class="hidden" style="margin-top: 15px;">
+          <h4 id="titulo-fase-fim">Finalizar e Conferir Doca</h4>
+          <div class="form-grid" style="margin-top: 10px;">
+            <div class="form-group">
+              <label for="dataHorarioProcesso">DATA E HORÁRIO DO CARREGAMENTO/DESCARGA *</label>
+              <input type="datetime-local" id="dataHorarioProcesso" required>
+            </div>
+            <div class="form-group">
+              <label for="nomeConferente">NOME DO CONFERENTE *</label>
+              <input type="text" id="nomeConferente" required placeholder="Ex: Carlos Oliveira" class="input-capitalizar">
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+              <label for="observacoesConferencia">OBSERVAÇÕES / AVARIAS / DIVERGÊNCIAS</label>
+              <textarea id="observacoesConferencia" rows="2" placeholder="Avarias ou observações..."></textarea>
+            </div>
+          </div>
+          <button type="button" class="btn btn-success" style="margin-top: 15px;" onclick="finalizarEtapaCarregamento()">Concluir Doca e Liberar para Balança</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- 3. ABA: BALANÇA SAÍDA -->
+    <div id="aba-balanca" class="aba-conteudo hidden">
+      <section class="card">
+        <h2>Localizar Operação para Pesagem e Encerramento</h2>
+        <form id="form-buscar-op" class="form-row" style="display: flex; gap: 12px; margin-top: 12px;" onsubmit="event.preventDefault(); buscarOPBalanca();">
+          <input type="text" id="input-buscar-op" placeholder="Informe a OP ex: OP-20260902-9777" style="flex: 1;" required>
+          <button type="submit" class="btn btn-primary">Buscar OP</button>
+        </form>
+      </section>
+
+      <section id="secao-finalizacao" class="card hidden">
+        <h2>Consolidação de Pesagem e Saída</h2>
+        
+        <div class="ticket-info" style="margin-bottom: 20px;">
+          <div class="info-row"><span>Nº OP:</span> <strong id="resumo-op">--</strong></div>
+          <div class="info-row"><span>PLACA:</span> <strong id="resumo-placa">--</strong></div>
+          <div class="info-row"><span>MOTORISTA:</span> <strong id="resumo-motorista">--</strong></div>
+          <div class="info-row"><span>TIPO OPERAÇÃO:</span> <strong id="resumo-operacao">--</strong></div>
+        </div>
+
+        <form id="form-finalizar-op" onsubmit="event.preventDefault(); finalizarOperacao();">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="nome-conferente">NOME DO CONFERENTE DE SAÍDA *</label>
+              <input type="text" id="nome-conferente" placeholder="Ex: João Silva" required class="input-capitalizar">
+            </div>
+
+            <div class="form-group">
+              <label for="data-horario-saida">DATA E HORÁRIO DA SAÍDA *</label>
+              <input type="datetime-local" id="data-horario-saida" required>
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+              <label for="peso-final">PESO FINAL DA BALANÇA (KG) *</label>
+              <input type="number" id="peso-final" step="0.01" placeholder="Ex: 24500" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 20px;">FINALIZAR OPERAÇÃO E LIBERAR VEÍCULO</button>
+        </form>
+      </section>
+    </div>
+
+    <!-- 4. ABA: PAINEL ADMINISTRATIVO -->
+    <div id="aba-admin" class="aba-conteudo hidden">
+      <section class="card">
+        <h2>Métricas e Status do Pátio</h2>
+        <div class="dashboard-cards" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 1rem;">
+          <div class="card" style="text-align: center; margin-bottom: 0; padding: 16px;">
+            <h4>Aguardando Pátio</h4>
+            <span id="stat-patio" class="stat-number" style="font-size: 2rem; font-weight: bold; color: var(--primary);">0</span>
+          </div>
+          <div class="card" style="text-align: center; margin-bottom: 0; padding: 16px;">
+            <h4>Em Doca</h4>
+            <span id="stat-carregando" class="stat-number" style="font-size: 2rem; font-weight: bold; color: var(--accent);">0</span>
+          </div>
+          <div class="card" style="text-align: center; margin-bottom: 0; padding: 16px;">
+            <h4>Concluídos Hoje</h4>
+            <span id="stat-finalizados" class="stat-number" style="font-size: 2rem; font-weight: bold; color: var(--success);">0</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SEÇÃO DO GRÁFICO COM ALTERNÂNCIA DE TIPO E PORCENTAGEM -->
+      <section class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+          <h2>Distribuição de Operações (%)</h2>
+          <div class="form-group" style="margin: 0;">
+            <select id="tipo-grafico-select" style="padding: 6px 12px; font-weight: 600;">
+              <option value="bar">📊 Gráfico de Barras</option>
+              <option value="line">📈 Gráfico de Linha</option>
             </select>
           </div>
+        </div>
+        <div style="max-height: 300px; position: relative;">
+          <canvas id="graficoOperacoes"></canvas>
+        </div>
+      </section>
 
+      <!-- FILTRO DE RELATÓRIO EXPANDIDO COM OPÇÃO DE CARREGAMENTO / DESCARGA -->
+      <section class="card">
+        <h2>Filtro de Relatório</h2>
+        <div class="form-grid">
           <div class="form-group">
-            <label for="nome-motorista">NOME DO MOTORISTA *</label>
-            <input type="text" id="nome-motorista" placeholder="Nome completo do condutor" required>
+            <label for="filtro-data-inicio">Data Inicial</label>
+            <input type="date" id="filtro-data-inicio">
           </div>
-
           <div class="form-group">
-            <label for="cpf-motorista">CPF DO MOTORISTA *</label>
-            <input type="text" id="cpf-motorista" placeholder="000.000.000-00" required>
+            <label for="filtro-data-fim">Data Final</label>
+            <input type="date" id="filtro-data-fim">
           </div>
-
-          <div class="form-group">
-            <label for="nome-ajudante">NOME DO AJUDANTE <span class="badge-opcional">(Opcional)</span></label>
-            <input type="text" id="nome-ajudante" placeholder="Nome do ajudante">
-          </div>
-
-          <div class="form-group">
-            <label for="cpf-ajudante">CPF DO AJUDANTE <span class="badge-opcional">(Opcional)</span></label>
-            <input type="text" id="cpf-ajudante" placeholder="000.000.000-00">
+          <div class="form-group" style="grid-column: span 2;">
+            <label for="filtro-tipo-operacao">Filtrar Operação</label>
+            <select id="filtro-tipo-operacao">
+              <option value="TODOS">Todas as Operações</option>
+              <option value="CARREGAMENTO">Somente Carregamento</option>
+              <option value="DESCARGA">Somente Descarga</option>
+            </select>
           </div>
         </div>
-
-        <div class="actions-wrapper">
-          <button type="submit" class="btn btn-primary">Registrar Entrada no Banco</button>
-          <button type="button" class="btn btn-outline" onclick="gerarQRDireto()">Gerar Ticket Prévio</button>
+        <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="btn btn-primary" onclick="filtrarRelatorio()">Filtrar Operações</button>
+          <button class="btn btn-outline" onclick="carregarHistoricoOperacoes()">Limpar Filtros</button>
+          <button class="btn btn-success" onclick="imprimirRelatorioGeral()">🖨️ Imprimir Relatório Geral</button>
         </div>
-      </form>
-    </section>
+      </section>
 
-    <!-- Ticket Impresso com QR Code -->
-    <section id="area-ticket" class="card card-ticket hidden">
-      <div class="ticket-wrapper">
-        <div class="ticket-header">
-          <h3>TRANSPORTADORA PAULÃO</h3>
-          <p>TICKET DE CONTROLE DE PÁTIO</p>
+      <section class="card">
+        <h2>Histórico de Operações e Auditoria</h2>
+        <div style="overflow-x: auto; margin-top: 10px;">
+          <table class="table-custom" style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--border-color);">
+                <th style="padding: 10px;">Nº OP</th>
+                <th style="padding: 10px;">Placa</th>
+                <th style="padding: 10px;">Motorista</th>
+                <th style="padding: 10px;">Operação</th>
+                <th style="padding: 10px;">Entrada</th>
+                <th style="padding: 10px;">Peso Saída</th>
+                <th style="padding: 10px;">Status</th>
+                <th style="padding: 10px; text-align: center;">Ações ADM</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-historico">
+            </tbody>
+          </table>
         </div>
+      </section>
+    </div>
 
-        <div class="qr-code-frame">
-          <div id="qrcode-container"></div>
-        </div>
+    <!-- 5. ABA: LOGIN -->
+    <div id="aba-login" class="aba-conteudo hidden">
+      <div class="card" style="width: 100%; max-width: 400px; margin: 40px auto; text-align: center;">
+        <img src="img/LogoTransportadora.jpeg" alt="Logo" class="system-logo" style="height: 60px; margin-bottom: 12px;" onerror="this.src='https://via.placeholder.com/60?text=LOGISTICA'">
+        <h2>Acesso ao Sistema</h2>
 
-        <div class="ticket-info">
-          <div class="info-row">
-            <span>Nº OP:</span>
-            <strong id="ticket-op">--</strong>
+        <form onsubmit="event.preventDefault(); const e = document.getElementById('login-email').value; const s = document.getElementById('login-senha').value; fazerLogin(e, s);">
+          <div class="form-group" style="margin-bottom: 12px; text-align: left;">
+            <label for="login-email">E-mail / Usuário</label>
+            <input type="email" id="login-email" placeholder="usuario@paulao.com" required>
           </div>
-          <div class="info-row">
-            <span>PLACA:</span>
-            <strong id="ticket-placa">--</strong>
-          </div>
-          <div class="info-row">
-            <span>MOTORISTA:</span>
-            <strong id="ticket-motorista">--</strong>
-          </div>
-          <div class="info-row">
-            <span>OPERAÇÃO:</span>
-            <strong id="ticket-operacao">--</strong>
-          </div>
-          <div class="info-row">
-            <span>ENTRADA:</span>
-            <strong id="ticket-data">--</strong>
-          </div>
-        </div>
 
-        <div class="ticket-actions">
-          <button class="btn btn-secondary" onclick="window.print()">Imprimir Ticket</button>
-          <button class="btn btn-outline" onclick="document.getElementById('area-ticket').classList.add('hidden')">Fechar</button>
-        </div>
+          <div class="form-group" style="margin-bottom: 16px; text-align: left;">
+            <label for="login-senha">Senha</label>
+            <input type="password" id="login-senha" placeholder="******" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Entrar</button>
+        </form>
       </div>
-    </section>
+    </div>
 
   </main>
 
