@@ -5,7 +5,6 @@
   --bg-color: #f1f4f8;
   --card-bg: #ffffff;
   --text-main: #2c3e50;
-  --text-muted: #60a3bc;
   --border-color: #e1e8ef;
   --success: #079992;
   --success-hover: #009432;
@@ -25,7 +24,7 @@ body {
   min-height: 100vh;
 }
 
-/* Header & Menu Navegação */
+/* Header & Navegação */
 .main-header {
   background-color: var(--primary);
   color: #fff;
@@ -56,7 +55,6 @@ body {
 .main-header h1 {
   font-size: 1.25rem;
   font-weight: 700;
-  letter-spacing: 0.3px;
 }
 
 .system-title {
@@ -73,9 +71,9 @@ body {
 .nav-menu a, .btn-logout {
   color: #dcdde1;
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 500;
-  padding: 8px 16px;
+  padding: 8px 14px;
   border-radius: 6px;
   transition: all 0.2s ease;
   background: transparent;
@@ -91,16 +89,16 @@ body {
 
 /* Containers e Cards */
 .container {
-  max-width: 920px;
-  margin: 32px auto;
-  padding: 0 20px;
+  max-width: 1000px;
+  margin: 28px auto;
+  padding: 0 16px;
 }
 
 .card {
   background: var(--card-bg);
   border-radius: 12px;
-  padding: 28px;
-  margin-bottom: 24px;
+  padding: 24px;
+  margin-bottom: 20px;
   box-shadow: var(--shadow);
   border: 1px solid var(--border-color);
 }
@@ -126,7 +124,7 @@ body {
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
+  gap: 16px;
 }
 
 .form-group {
@@ -135,7 +133,7 @@ body {
 }
 
 .form-group label {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: #34495e;
   margin-bottom: 6px;
@@ -148,7 +146,7 @@ body {
 }
 
 .form-group input, .form-group select, .form-group textarea {
-  padding: 11px 14px;
+  padding: 10px 12px;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   font-size: 0.95rem;
@@ -167,13 +165,13 @@ body {
 .actions-wrapper {
   display: flex;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 20px;
 }
 
 .btn {
-  padding: 12px 22px;
+  padding: 10px 18px;
   border-radius: 6px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -182,141 +180,89 @@ body {
   justify-content: center;
   gap: 8px;
   transition: all 0.2s ease;
-  text-decoration: none;
 }
 
-.btn-primary {
-  background-color: var(--primary);
-  color: #fff;
+.btn-lg { padding: 16px 28px; font-size: 1.1rem; }
+.btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+
+.btn-primary { background-color: var(--primary); color: #fff; }
+.btn-primary:hover { background-color: var(--primary-hover); }
+
+.btn-outline { background-color: transparent; border: 1px solid var(--accent); color: var(--accent); }
+.btn-outline:hover { background-color: #eaf2f8; }
+
+.btn-secondary { background-color: #718093; color: #fff; }
+
+.btn-success { background-color: var(--success); color: #fff; }
+.btn-success:hover { background-color: var(--success-hover); }
+
+.hidden { display: none !important; }
+
+/* Grid de Docas */
+.docas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+  margin-top: 15px;
 }
 
-.btn-primary:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-1px);
-}
-
-.btn-outline {
-  background-color: transparent;
-  border: 1px solid var(--accent);
-  color: var(--accent);
-}
-
-.btn-outline:hover {
-  background-color: #eaf2f8;
-}
-
-.btn-secondary {
-  background-color: #718093;
-  color: #fff;
-}
-
-.btn-success {
-  background-color: var(--success);
-  color: #fff;
-}
-
-.btn-success:hover {
-  background-color: var(--success-hover);
-}
-
-.hidden {
-  display: none !important;
-}
-
-/* Card Ticket QR */
-.card-ticket {
-  background: #ffffff;
-  border: 2px dashed var(--primary);
-  border-radius: 12px;
-}
-
-.ticket-wrapper {
-  max-width: 460px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.ticket-header h3 {
-  color: var(--primary);
-  font-size: 1.3rem;
-  letter-spacing: 0.5px;
-}
-
-.ticket-header p {
-  font-size: 0.8rem;
-  color: #7f8c8d;
-}
-
-.qr-code-frame {
-  background: #ffffff;
-  padding: 16px;
+.doca-card {
   border-radius: 8px;
-  display: inline-block;
-  margin: 18px 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  border: 1px solid var(--border-color);
-}
-
-.ticket-info {
+  padding: 14px;
+  border: 2px solid var(--border-color);
   background: #f8fafc;
-  border-radius: 8px;
-  padding: 14px 18px;
-  text-align: left;
-  border: 1px solid var(--border-color);
-  margin-bottom: 20px;
-}
-
-.info-row {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  padding: 6px 0;
-  border-bottom: 1px solid #edf2f7;
-  font-size: 0.9rem;
+  min-height: 120px;
 }
 
-.info-row:last-child {
-  border-bottom: none;
-}
+.doca-card.livre { border-color: #2ecc71; background-color: #f0fff4; }
+.doca-card.ocupada { border-color: #3498db; background-color: #ebf5fb; }
 
-.info-row span {
-  color: #64748b;
-}
+.doca-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.doca-status-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
 
-.info-row strong {
-  color: #1e293b;
-}
+.badge-livre { background: #2ecc71; color: #fff; }
+.badge-ocupada { background: #3498db; color: #fff; }
 
-.ticket-actions {
-  display: flex;
-  gap: 12px;
-}
+.doca-info-vazio { font-size: 0.8rem; color: #95a5a6; font-style: italic; }
+.doca-detalhes { font-size: 0.8rem; color: #34495e; margin-bottom: 10px; }
 
-.ticket-actions .btn {
-  flex: 1;
-}
+/* Tabelas */
+.table-custom { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
+.table-custom th, .table-custom td { padding: 10px 12px; border-bottom: 1px solid var(--border-color); }
+.table-custom th { background-color: #f8fafc; color: #475569; font-weight: 600; }
 
-.alert {
-  padding: 12px;
-  border-radius: 6px;
-  margin-bottom: 15px;
-  font-size: 0.9rem;
-}
+/* Badges de Status */
+.badge-status { padding: 4px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: bold; }
+.status-CADASTRADO { background: #e2e8f0; color: #475569; }
+.status-AGUARDANDO_CHAMADA { background: #fef3c7; color: #92400e; }
+.status-CHAMADO { background: #fed7aa; color: #9a3412; }
+.status-NA_DOCA { background: #dbeafe; color: #1e40af; }
+.status-EM_OPERACAO { background: #e0e7ff; color: #3730a3; }
+.status-FINALIZADO { background: #d1fae5; color: #065f46; }
+.status-SAIDA_LIBERADA { background: #10b981; color: #ffffff; }
 
-.alert-danger { 
-  background-color: #f8d7da; 
-  color: #721c24; 
-}
+/* Dashboard Cards */
+.dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 15px; }
+.stat-card { text-align: center; padding: 16px; margin-bottom: 0; }
+.stat-number { font-size: 2rem; font-weight: bold; color: var(--primary); display: block; margin-top: 5px; }
 
-.alert-success { 
-  background-color: #d4edda; 
-  color: #155724; 
+/* Modal */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 2000;
 }
+.modal-content { background: #fff; padding: 24px; border-radius: 12px; width: 100%; max-width: 420px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
+
+/* Ticket e Alertas */
+.ticket-info .info-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #eee; font-size: 0.85rem; }
+.alert { padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem; }
+.alert-danger { background-color: #f8d7da; color: #721c24; }
+.alert-success { background-color: #d4edda; color: #155724; }
 
 @media (max-width: 600px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-  .actions-wrapper, .ticket-actions {
-    flex-direction: column;
-  }
+  .form-grid { grid-template-columns: 1fr; }
+  .nav-menu { flex-wrap: wrap; }
 }

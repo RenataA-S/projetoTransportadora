@@ -1,13 +1,13 @@
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
-  getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where, serverTimestamp 
+  getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where, serverTimestamp, onSnapshot 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { 
   getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // ==========================================================================
-// CONFIGURAÇÃO DO FIREBASE
+// 1. CONFIGURAÇÃO DO FIREBASE
 // ==========================================================================
 const firebaseConfig = {
   apiKey: "AIzaSyBXGqn85J6RDkpNCr-_z31MM4LPhROg6zI",
@@ -22,35 +22,26 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-let operacaoAtualId = null;
+const COLECAO_ATENDIMENTOS = "atendimentos";
+
+// Variáveis Globais de Controle de Estado
+let atendimentoAtualId = null;
 let html5QrScanner = null;
-let isProcessingQr = false;
 let meuGrafico = null;
-
-// Armazenamento global das métricas do gráfico
-let qtdCargaGlobal = 0;
-let qtdDescargaGlobal = 0;
-
-const QR_PREFIX = "VEHICLE_RECORD:";
+let usuarioLogado = null;
+let unsubscribeFila = null;
 
 // ==========================================================================
-// MÁSCARAS E FORMATAÇÃO DE CAMPOS (NOME MAIÚSCULO E CPF COM PONTUAÇÃO)
+// 2. MÁSCARAS E MÉTODOS UTILITÁRIOS
 // ==========================================================================
 function aplicarCapitalizacao(texto) {
-  return texto
-    .toLowerCase()
-    .split(' ')
-    .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
-    .join(' ');
+  if (!texto) return '';
+  return texto.toLowerCase().split(' ').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
 }
 
 function aplicarMascaraCPF(valor) {
-  return valor
-    .replace(/\D/g, '')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
-    .substring(0, 14);
+  if (!valor) return '';
+  return valor.replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2').substring(0, 14);
 }
 
 document.addEventListener('input', (e) => {
@@ -59,14 +50,32 @@ document.addEventListener('input', (e) => {
     e.target.value = aplicarCapitalizacao(e.target.value);
     e.target.setSelectionRange(pos, pos);
   }
-
   if (e.target.classList.contains('input-cpf')) {
     e.target.value = aplicarMascaraCPF(e.target.value);
   }
 });
 
+function formatDateTime(timestamp) {
+  if (!timestamp) return "--/--/---- --:--";
+  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
+function formatTimeOnly(timestamp) {
+  if (!timestamp) return "--:--";
+  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
+function gerarAtendimentoId() {
+  const d = new Date();
+  const dataFormatada = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+  const aleatorio = String(Math.floor(Math.random() * 90000) + 10000);
+  return `ATD-${dataFormatada}-${aleatorio}`;
+}
+
 // ==========================================================================
-// NAVEGAÇÃO SPA
+// 3. NAVEGAÇÃO SPA
 // ==========================================================================
 window.navegarPara = function(idAba) {
   document.querySelectorAll('.aba-conteudo').forEach(el => el.classList.add('hidden'));
@@ -80,41 +89,24 @@ window.navegarPara = function(idAba) {
 
   window.pararCamera();
 
-  if (idAba === 'aba-admin') {
-    window.carregarHistoricoOperacoes();
+  if (idAba === 'aba-docas') {
+    iniciarEscutaFilaETempoReal();
+  } else if (idAba === 'aba-admin') {
+    window.carregarHistoricoAtendimentos();
   }
 };
 
 // ==========================================================================
-// UTILS DE DATA E FORMATOS
-// ==========================================================================
-function formatDateTime(timestamp) {
-  if (!timestamp) return "--/--/---- --:--";
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-}
-
-function extractDocumentId(qrValue) {
-  if (!qrValue || typeof qrValue !== "string" || !qrValue.startsWith(QR_PREFIX)) {
-    throw new Error("QR Code inválido. Utilize um QR Code gerado pelo sistema.");
-  }
-  return qrValue.replace(QR_PREFIX, "").trim();
-}
-
-function gerarNumeroOP() {
-  const d = new Date();
-  return `OP-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${Math.floor(1000 + Math.random() * 9000)}`;
-}
-
-// ==========================================================================
-// AUTENTICAÇÃO
+// 4. AUTENTICAÇÃO FIREBASE
 // ==========================================================================
 onAuthStateChanged(auth, (user) => {
+  usuarioLogado = user;
+  const navMenu = document.getElementById('nav-menu');
   if (!user) {
-    document.getElementById('nav-menu').style.display = 'none';
+    if (navMenu) navMenu.style.display = 'none';
     window.navegarPara('aba-login');
   } else {
-    document.getElementById('nav-menu').style.display = 'flex';
+    if (navMenu) navMenu.style.display = 'flex';
     if (!document.getElementById('aba-login').classList.contains('hidden')) {
       window.navegarPara('aba-entrada');
     }
@@ -132,554 +124,516 @@ document.getElementById('btn-logout')?.addEventListener('click', () => {
 });
 
 // ==========================================================================
-// 1. ENTRADA DE VEÍCULOS
+// 5. ENTRADA DE VEÍCULOS & TICKET
 // ==========================================================================
 window.salvarEntrada = async function() {
   const placa = document.getElementById('placa-veiculo')?.value.toUpperCase().trim();
   const tipoVeiculo = document.getElementById('tipo-veiculo')?.value;
-  const operacao = document.getElementById('tipo-operacao')?.value;
   const motorista = document.getElementById('nome-motorista')?.value.trim();
-  const cpfMotorista = document.getElementById('cpf-motorista')?.value.trim();
+  const documentoMotorista = document.getElementById('cpf-motorista')?.value.trim();
   const ajudante = document.getElementById('nome-ajudante')?.value.trim();
-  const cpfAjudante = document.getElementById('cpf-ajudante')?.value.trim();
+  const documentoAjudante = document.getElementById('cpf-ajudante')?.value.trim();
+  const telefone = document.getElementById('telefone-motorista')?.value.trim();
+  const tipoOperacao = document.getElementById('tipo-operacao')?.value;
+  const numeroCarga = document.getElementById('numero-carga')?.value.trim();
+  const transportadora = document.getElementById('transportadora')?.value.trim();
+  const cliente = document.getElementById('cliente')?.value.trim();
+  const observacao = document.getElementById('observacao')?.value.trim();
 
-  if (!placa || !tipoVeiculo || !motorista || !cpfMotorista) {
-    alert("Preencha todos os campos obrigatórios.");
+  if (!placa || !tipoVeiculo || !motorista || !documentoMotorista || !telefone || !numeroCarga || !transportadora || !cliente) {
+    alert("Preencha todos os campos obrigatórios marcados com *.");
     return;
   }
 
-  const numeroOP = gerarNumeroOP();
-  const agora = serverTimestamp();
+  const idPersonalizado = gerarAtendimentoId();
+  const agora = new Date();
 
-  const dadosEntrada = {
-    op: numeroOP,
-    placaVeiculo: placa,
-    tipoVeiculo: tipoVeiculo,
-    tipoOperacao: operacao,
-    motorista: motorista,
-    cpfMotorista: cpfMotorista,
-    ajudante: ajudante || "N/A",
-    cpfAjudante: cpfAjudante || "N/A",
-    horarioEntrada: agora,
-    status: "ENTRADA_REGISTRADA",
-    criadoEm: agora
+  const dadosAtendimento = {
+    atendimentoId: idPersonalizado,
+    placa, tipoVeiculo, motorista, documentoMotorista, 
+    ajudante: ajudante || "", documentoAjudante: documentoAjudante || "",
+    telefone, transportadora, tipoOperacao, numeroCarga, cliente,
+    observacao: observacao || "",
+    dataCadastro: agora.toISOString().slice(0, 10),
+    horarioCadastro: formatTimeOnly(agora),
+    horarioCheckin: null, horarioChamada: null, horarioChegadaDoca: null,
+    horarioInicioOperacao: null, horarioFinalizacao: null, horarioSaida: null,
+    doca: null, status: "CADASTRADO", usuarioChamada: null,
+    criadoEm: serverTimestamp(), atualizadoEm: serverTimestamp()
   };
 
   try {
-    const docRef = await addDoc(collection(db, "operacoes"), dadosEntrada);
-    const qrPayload = `${QR_PREFIX}${docRef.id}`;
+    await addDoc(collection(db, COLECAO_ATENDIMENTOS), dadosAtendimento);
 
-    await updateDoc(docRef, { qrCode: qrPayload });
-
-    document.getElementById('ticket-op').innerText = numeroOP;
+    document.getElementById('ticket-id').innerText = idPersonalizado;
     document.getElementById('ticket-placa').innerText = placa;
     document.getElementById('ticket-motorista').innerText = motorista;
-    document.getElementById('ticket-operacao').innerText = operacao;
-    document.getElementById('ticket-data').innerText = new Date().toLocaleString('pt-BR');
+    document.getElementById('ticket-ajudante').innerText = ajudante ? `${ajudante} (${documentoAjudante})` : 'Nenhum';
+    document.getElementById('ticket-operacao').innerText = tipoOperacao;
+    document.getElementById('ticket-carga').innerText = numeroCarga;
+    document.getElementById('ticket-data').innerText = `${dadosAtendimento.dataCadastro} ${dadosAtendimento.horarioCadastro}`;
 
+    const qrPayload = `https://projetotransportadora-828a3.web.app/checkin?id=${idPersonalizado}`;
     const qrContainer = document.getElementById('qrcode-container');
     if (qrContainer) {
       qrContainer.innerHTML = "";
-      if (typeof QRCode !== "undefined") {
-        new QRCode(qrContainer, { text: qrPayload, width: 170, height: 170 });
-      }
+      if (typeof QRCode !== "undefined") new QRCode(qrContainer, { text: qrPayload, width: 160, height: 160 });
     }
 
     document.getElementById('area-ticket')?.classList.remove('hidden');
     document.getElementById('form-entrada')?.reset();
   } catch (erro) {
-    console.error("Erro ao salvar entrada:", erro);
-    alert("Erro ao gravar entrada no banco de dados.");
+    console.error(erro);
+    alert("Erro ao gravar cadastro no banco de dados.");
   }
 };
 
-// ==========================================================================
-// 2. CARREGAMENTO E DESCARGA
-// ==========================================================================
-window.habilitarCamera = async function() {
-  const alertBox = document.getElementById("scanner-alert");
-  const readerArea = document.getElementById("reader");
+window.imprimirTicketEntrada = function() {
+  const ticketElement = document.getElementById('area-ticket');
+  if (!ticketElement) return;
 
-  try {
-    if (alertBox) alertBox.classList.add("hidden");
-    html5QrScanner = new Html5Qrcode("reader");
-    if (readerArea) readerArea.classList.remove("hidden");
+  const win = window.open('', '_blank', 'width=400,height=600');
+  win.document.write(`
+    <html><head><title>Ticket - Transportadora Paulão</title><style>body { font-family: monospace; text-align: center; padding: 20px; }</style></head>
+    <body>${ticketElement.innerHTML}<script>window.onload = function() { window.print(); window.close(); };<\/script></body></html>
+  `);
+  win.document.close();
+};
 
-    await html5QrScanner.start(
-      { facingMode: { ideal: "environment" } },
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      async (qrCodeMessage) => {
-        if (isProcessingQr) return;
-        isProcessingQr = true;
-        await window.pararCamera();
-        await processarLeituraQRCode(qrCodeMessage);
-        isProcessingQr = false;
-      },
-      () => {}
-    );
-  } catch (err) {
+// ==========================================================================
+// 6. CHECK-IN DO MOTORISTA
+// ==========================================================================
+window.habilitarScannerCheckin = function() {
+  window.iniciarCamera("reader-checkin", async (qrMessage) => {
     await window.pararCamera();
+    processarCheckinQRCode(qrMessage);
+  });
+};
+
+async function processarCheckinQRCode(qrValue) {
+  const alertBox = document.getElementById("checkin-alert");
+  try {
+    let atendimentoId = qrValue.includes("id=") ? qrValue.split("id=")[1] : qrValue;
+    const q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", atendimentoId));
+    const snap = await getDocs(q);
+
+    if (snap.empty) throw new Error("Atendimento não encontrado no sistema.");
+
+    const docSnap = snap.docs[0];
+    const data = docSnap.data();
+
+    if (data.status !== "CADASTRADO") throw new Error(`Este atendimento já está no status: ${data.status}`);
+
+    await updateDoc(doc(db, COLECAO_ATENDIMENTOS, docSnap.id), {
+      status: "AGUARDANDO_CHAMADA",
+      horarioCheckin: serverTimestamp(),
+      atualizadoEm: serverTimestamp()
+    });
+
+    document.getElementById('checkin-resumo-id').innerText = data.atendimentoId;
+    document.getElementById('checkin-resumo-placa').innerText = data.placa;
+    document.getElementById('checkin-resumo-motorista').innerText = data.motorista;
+
+    document.getElementById('card-confirmacao-checkin')?.classList.remove('hidden');
+    if (alertBox) alertBox.classList.add('hidden');
+  } catch (err) {
     if (alertBox) {
-      alertBox.textContent = err.message || "Erro ao acessar câmera.";
+      alertBox.textContent = err.message;
       alertBox.className = "alert alert-danger";
       alertBox.classList.remove("hidden");
     }
   }
+}
+
+// ==========================================================================
+// 7. PAINEL DO LÍDER & DOCAS (REALTIME)
+// ==========================================================================
+function iniciarEscutaFilaETempoReal() {
+  if (unsubscribeFila) unsubscribeFila();
+
+  const q = query(collection(db, COLECAO_ATENDIMENTOS));
+  unsubscribeFila = onSnapshot(q, (snapshot) => {
+    const todosAtendimentos = [];
+    snapshot.forEach(docSnap => todosAtendimentos.push({ idFirestore: docSnap.id, ...docSnap.data() }));
+
+    renderizarGridDocas(todosAtendimentos);
+    renderizarFilaEspera(todosAtendimentos);
+  });
+}
+
+function renderizarGridDocas(lista) {
+  const gridContainer = document.getElementById('container-docas-grid');
+  if (!gridContainer) return;
+
+  gridContainer.innerHTML = "";
+  const docas = ["Doca 01", "Doca 02", "Doca 03", "Doca 04", "Doca 05", "Doca 06", "Doca 07", "Doca 08", "Doca 09", "Doca 10"];
+
+  docas.forEach(nomeDoca => {
+    const ocupante = lista.find(item => item.doca === nomeDoca && ["CHAMADO", "A_CAMINHO_DA_DOCA", "NA_DOCA", "EM_OPERACAO"].includes(item.status));
+
+    const card = document.createElement('div');
+    card.className = `doca-card ${ocupante ? 'ocupada' : 'livre'}`;
+
+    if (!ocupante) {
+      card.innerHTML = `
+        <div class="doca-header"><strong>${nomeDoca}</strong><span class="doca-status-badge badge-livre">LIVRE</span></div>
+        <p class="doca-info-vazio">Nenhum veículo alocado</p>
+      `;
+    } else {
+      card.innerHTML = `
+        <div class="doca-header"><strong>${nomeDoca}</strong><span class="doca-status-badge badge-ocupada">${ocupante.status}</span></div>
+        <div class="doca-detalhes">
+          <div><strong>Placa:</strong> ${ocupante.placa}</div>
+          <div><strong>Motorista:</strong> ${ocupante.motorista}</div>
+          <div><strong>Operação:</strong> ${ocupante.tipoOperacao}</div>
+        </div>
+        <div class="doca-acoes">
+          ${ocupante.status === 'NA_DOCA' ? `<button class="btn btn-primary btn-sm" onclick="iniciarOperacaoDoca('${ocupante.idFirestore}')">Iniciar Operação</button>` : ''}
+          ${ocupante.status === 'EM_OPERACAO' ? `<button class="btn btn-success btn-sm" onclick="finalizarOperacaoDoca('${ocupante.idFirestore}')">Finalizar Doca</button>` : ''}
+        </div>
+      `;
+    }
+    gridContainer.appendChild(card);
+  });
+}
+
+function renderizarFilaEspera(lista) {
+  const tbody = document.getElementById('tbody-fila-espera');
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+  const fila = lista.filter(item => item.status === "AGUARDANDO_CHAMADA");
+
+  if (fila.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Nenhum veículo aguardando no pátio.</td></tr>`;
+    return;
+  }
+
+  fila.forEach((item, index) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>#${index + 1}</strong></td>
+      <td>${formatDateTime(item.horarioCheckin)}</td>
+      <td>${item.atendimentoId}</td>
+      <td><strong>${item.placa}</strong></td>
+      <td>${item.motorista}</td>
+      <td>${item.tipoOperacao}</td>
+      <td>${item.transportadora}</td>
+      <td><button class="btn btn-primary btn-sm" onclick="abrirModalChamar('${item.idFirestore}', '${item.placa}')">📢 CHAMAR VEÍCULO</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+window.abrirModalChamar = function(idFirestore, placa) {
+  atendimentoAtualId = idFirestore;
+  document.getElementById('modal-placa').innerText = placa;
+  document.getElementById('modal-chamar-doca').classList.remove('hidden');
+};
+
+window.fecharModalChamar = function() {
+  atendimentoAtualId = null;
+  document.getElementById('modal-chamar-doca').classList.add('hidden');
+};
+
+window.confirmarChamadaDoca = async function() {
+  if (!atendimentoAtualId) return;
+  const docaSelecionada = document.getElementById('select-doca-chamar').value;
+
+  try {
+    await updateDoc(doc(db, COLECAO_ATENDIMENTOS, atendimentoAtualId), {
+      doca: docaSelecionada,
+      status: "CHAMADO",
+      usuarioChamada: usuarioLogado?.email || "Líder de Pátio",
+      horarioChamada: serverTimestamp(),
+      atualizadoEm: serverTimestamp()
+    });
+
+    alert(`Veículo chamado para a ${docaSelecionada}!`);
+    window.fecharModalChamar();
+  } catch (err) {
+    alert("Erro ao realizar chamada para doca.");
+  }
+};
+
+window.iniciarOperacaoDoca = async function(idFirestore) {
+  try {
+    await updateDoc(doc(db, COLECAO_ATENDIMENTOS, idFirestore), {
+      status: "EM_OPERACAO",
+      horarioInicioOperacao: serverTimestamp(),
+      atualizadoEm: serverTimestamp()
+    });
+  } catch (err) { alert("Erro ao iniciar operação."); }
+};
+
+window.finalizarOperacaoDoca = async function(idFirestore) {
+  try {
+    await updateDoc(doc(db, COLECAO_ATENDIMENTOS, idFirestore), {
+      status: "FINALIZADO",
+      horarioFinalizacao: serverTimestamp(),
+      atualizadoEm: serverTimestamp()
+    });
+  } catch (err) { alert("Erro ao finalizar doca."); }
+};
+
+window.habilitarScannerDoca = function() {
+  window.iniciarCamera("reader-doca", async (qrMessage) => {
+    await window.pararCamera();
+    let atendimentoId = qrMessage.includes("id=") ? qrMessage.split("id=")[1] : qrMessage;
+
+    const q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", atendimentoId));
+    const snap = await getDocs(q);
+
+    if (snap.empty) return alert("Atendimento não encontrado.");
+    const docSnap = snap.docs[0];
+    const data = docSnap.data();
+
+    if (data.status === "CHAMADO" || data.status === "A_CAMINHO_DA_DOCA") {
+      await updateDoc(doc(db, COLECAO_ATENDIMENTOS, docSnap.id), {
+        status: "NA_DOCA",
+        horarioChegadaDoca: serverTimestamp(),
+        atualizadoEm: serverTimestamp()
+      });
+      alert(`Veículo confirmado na ${data.doca}! Status alterado para NA_DOCA.`);
+    } else if (data.status === "NA_DOCA") {
+      window.iniciarOperacaoDoca(docSnap.id);
+    } else if (data.status === "EM_OPERACAO") {
+      window.finalizarOperacaoDoca(docSnap.id);
+    }
+  });
+};
+
+// ==========================================================================
+// 8. BALANÇA E SAÍDA DE VEÍCULOS
+// ==========================================================================
+window.buscarAtendimentoBalanca = async function() {
+  const termo = document.getElementById('input-buscar-balanca')?.value.trim();
+  if (!termo) return alert("Digite o ID ou Placa.");
+
+  try {
+    let q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", termo));
+    let snap = await getDocs(q);
+
+    if (snap.empty) {
+      q = query(collection(db, COLECAO_ATENDIMENTOS), where("placa", "==", termo.toUpperCase()));
+      snap = await getDocs(q);
+    }
+
+    if (snap.empty) return alert("Nenhum atendimento localizado.");
+
+    const docSnap = snap.docs[0];
+    const data = docSnap.data();
+
+    atendimentoAtualId = docSnap.id;
+
+    document.getElementById('bal-id').innerText = data.atendimentoId;
+    document.getElementById('bal-placa').innerText = data.placa;
+    document.getElementById('bal-motorista').innerText = data.motorista;
+    document.getElementById('bal-ajudante').innerText = data.ajudante ? `${data.ajudante} (${data.documentoAjudante})` : 'Nenhum';
+    document.getElementById('bal-operacao').innerText = data.tipoOperacao;
+    document.getElementById('bal-doca').innerText = data.doca || 'N/A';
+    document.getElementById('bal-status').innerText = data.status;
+
+    document.getElementById('secao-liberacao-saida')?.classList.remove('hidden');
+  } catch (err) { alert("Erro na busca."); }
+};
+
+window.confirmarSaidaBalança = async function() {
+  if (!atendimentoAtualId) return;
+
+  try {
+    await updateDoc(doc(db, COLECAO_ATENDIMENTOS, atendimentoAtualId), {
+      status: "SAIDA_LIBERADA",
+      horarioSaida: serverTimestamp(),
+      atualizadoEm: serverTimestamp()
+    });
+
+    alert("Saída liberada com sucesso!");
+    document.getElementById('secao-liberacao-saida')?.classList.add('hidden');
+    document.getElementById('form-buscar-balanca')?.reset();
+    atendimentoAtualId = null;
+  } catch (err) { alert("Erro ao gravar saída."); }
+};
+
+// ==========================================================================
+// 9. CONSULTA PÚBLICA DE STATUS
+// ==========================================================================
+window.consultarStatusPublico = async function() {
+  const termo = document.getElementById('input-consulta-termo')?.value.trim();
+  if (!termo) return alert("Informe o ID ou a Placa.");
+
+  try {
+    let q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", termo));
+    let snap = await getDocs(q);
+
+    if (snap.empty) {
+      q = query(collection(db, COLECAO_ATENDIMENTOS), where("placa", "==", termo.toUpperCase()));
+      snap = await getDocs(q);
+    }
+
+    if (snap.empty) return alert("Nenhum registro encontrado.");
+
+    const data = snap.docs[0].data();
+
+    document.getElementById('cons-id').innerText = data.atendimentoId;
+    document.getElementById('cons-placa').innerText = data.placa;
+    document.getElementById('cons-motorista').innerText = data.motorista;
+    document.getElementById('cons-ajudante').innerText = data.ajudante ? `${data.ajudante} (${data.documentoAjudante})` : 'Nenhum';
+    document.getElementById('cons-operacao').innerText = data.tipoOperacao;
+    document.getElementById('cons-doca').innerText = data.doca || 'Pátio / Não Alocado';
+    document.getElementById('cons-status').innerText = data.status;
+    document.getElementById('cons-data').innerText = formatDateTime(data.atualizadoEm || data.criadoEm);
+
+    document.getElementById('secao-resultado-consulta')?.classList.remove('hidden');
+  } catch (err) { alert("Erro ao consultar status."); }
+};
+
+// ==========================================================================
+// 10. PAINEL ADMIN, DASHBOARD & IMPRESSÃO AUDITORIA
+// ==========================================================================
+window.carregarHistoricoAtendimentos = async function() {
+  try {
+    const snap = await getDocs(collection(db, COLECAO_ATENDIMENTOS));
+    const lista = [];
+    snap.forEach(d => lista.push({ idFirestore: d.id, ...d.data() }));
+
+    renderizarDashboardEAdmin(lista);
+  } catch (err) { console.error(err); }
+};
+
+function renderizarDashboardEAdmin(lista) {
+  let espera = 0, chamados = 0, doca = 0, finalizados = 0;
+  let contagemOperacoes = {};
+
+  const tbody = document.getElementById('tbody-historico');
+  if (tbody) tbody.innerHTML = "";
+
+  lista.forEach(item => {
+    if (item.status === "AGUARDANDO_CHAMADA") espera++;
+    if (["CHAMADO", "A_CAMINHO_DA_DOCA"].includes(item.status)) chamados++;
+    if (["NA_DOCA", "EM_OPERACAO"].includes(item.status)) doca++;
+    if (["FINALIZADO", "SAIDA_LIBERADA"].includes(item.status)) finalizados++;
+
+    contagemOperacoes[item.tipoOperacao] = (contagemOperacoes[item.tipoOperacao] || 0) + 1;
+
+    if (tbody) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${item.atendimentoId}</strong></td>
+        <td>${item.placa}</td>
+        <td>${item.motorista}</td>
+        <td>${item.tipoOperacao}</td>
+        <td>${item.doca || '-'}</td>
+        <td>${item.dataCadastro} ${item.horarioCadastro}</td>
+        <td><span class="badge-status status-${item.status}">${item.status}</span></td>
+        <td style="text-align: center;"><button class="btn btn-outline btn-sm" onclick="imprimirAuditoriaAtendimento('${item.idFirestore}')">🖨️ Detalhes</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+  });
+
+  document.getElementById('stat-espera').innerText = espera;
+  document.getElementById('stat-chamados').innerText = chamados;
+  document.getElementById('stat-doca').innerText = doca;
+  document.getElementById('stat-finalizados').innerText = finalizados;
+
+  renderizarGraficoAdmin(contagemOperacoes);
+}
+
+window.imprimirAuditoriaAtendimento = async function(idFirestore) {
+  try {
+    const docRef = doc(db, COLECAO_ATENDIMENTOS, idFirestore);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      alert("Atendimento não localizado.");
+      return;
+    }
+
+    const data = docSnap.data();
+    const win = window.open('', '_blank', 'width=600,height=700');
+    win.document.write(`
+      <html>
+        <head>
+          <title>Auditoria - ${data.atendimentoId}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; color: #2c3e50; }
+            h2 { color: #0a3d62; border-bottom: 2px solid #0a3d62; padding-bottom: 8px; }
+            .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px #eee dashed; }
+            .label { font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <h2>TRANSPORTADORA PAULÃO - RELATÓRIO DE AUDITORIA</h2>
+          <div class="row"><span class="label">ID Atendimento:</span><span>${data.atendimentoId}</span></div>
+          <div class="row"><span class="label">Placa:</span><span>${data.placa}</span></div>
+          <div class="row"><span class="label">Motorista:</span><span>${data.motorista} (${data.documentoMotorista})</span></div>
+          <div class="row"><span class="label">Ajudante:</span><span>${data.ajudante ? `${data.ajudante} (${data.documentoAjudante})` : 'Nenhum'}</span></div>
+          <div class="row"><span class="label">Telefone:</span><span>${data.telefone}</span></div>
+          <div class="row"><span class="label">Tipo Veículo:</span><span>${data.tipoVeiculo}</span></div>
+          <div class="row"><span class="label">Operação:</span><span>${data.tipoOperacao}</span></div>
+          <div class="row"><span class="label">Nº Carga / NF:</span><span>${data.numeroCarga}</span></div>
+          <div class="row"><span class="label">Transportadora:</span><span>${data.transportadora}</span></div>
+          <div class="row"><span class="label">Cliente:</span><span>${data.cliente}</span></div>
+          <div class="row"><span class="label">Doca Alocada:</span><span>${data.doca || 'N/A'}</span></div>
+          <div class="row"><span class="label">Status Atual:</span><span>${data.status}</span></div>
+          <div class="row"><span class="label">Cadastro:</span><span>${data.dataCadastro} às ${data.horarioCadastro}</span></div>
+          <div class="row"><span class="label">Horário Check-in:</span><span>${formatDateTime(data.horarioCheckin)}</span></div>
+          <div class="row"><span class="label">Horário Chamada:</span><span>${formatDateTime(data.horarioChamada)}</span></div>
+          <div class="row"><span class="label">Horário Entrada Doca:</span><span>${formatDateTime(data.horarioChegadaDoca)}</span></div>
+          <div class="row"><span class="label">Início Operação:</span><span>${formatDateTime(data.horarioInicioOperacao)}</span></div>
+          <div class="row"><span class="label">Fim Operação:</span><span>${formatDateTime(data.horarioFinalizacao)}</span></div>
+          <div class="row"><span class="label">Horário Saída:</span><span>${formatDateTime(data.horarioSaida)}</span></div>
+          <div class="row"><span class="label">Observações:</span><span>${data.observacao || 'Nenhuma'}</span></div>
+          <script>window.onload = function() { window.print(); };<\/script>
+        </body>
+      </html>
+    `);
+    win.document.close();
+  } catch (err) {
+    alert("Erro ao gerar relatório de detalhes: " + err.message);
+  }
+};
+
+function renderizarGraficoAdmin(dados) {
+  const ctx = document.getElementById('graficoOperacoes')?.getContext('2d');
+  if (!ctx) return;
+
+  if (meuGrafico) meuGrafico.destroy();
+
+  meuGrafico = new Chart(ctx, {
+    type: document.getElementById('tipo-grafico-select')?.value || 'bar',
+    data: {
+      labels: Object.keys(dados),
+      datasets: [{ label: 'Quantidade por Operação', data: Object.values(dados), backgroundColor: '#0a3d62' }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
+
+// ==========================================================================
+// 11. CONTROLE DE CÂMERA E QR CODE
+// ==========================================================================
+window.iniciarCamera = async function(elementId, callbackSucesso) {
+  window.pararCamera();
+  const element = document.getElementById(elementId);
+  if (element) element.classList.remove("hidden");
+
+  try {
+    html5QrScanner = new Html5Qrcode(elementId);
+    await html5QrScanner.start(
+      { facingMode: { ideal: "environment" } },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      callbackSucesso,
+      () => {}
+    );
+  } catch (err) { alert("Erro ao iniciar câmera: " + err.message); }
 };
 
 window.pararCamera = async function() {
-  const readerArea = document.getElementById("reader");
   if (html5QrScanner) {
     try { await html5QrScanner.stop(); } catch (e) {}
     html5QrScanner.clear();
     html5QrScanner = null;
-  }
-  if (readerArea) readerArea.classList.add("hidden");
-};
-
-async function processarLeituraQRCode(qrValue) {
-  try {
-    const documentId = extractDocumentId(qrValue);
-    await carregarOperacaoPorDocId(documentId);
-  } catch (err) {
-    alert(err.message);
-  }
-}
-
-window.buscarOPManual = async function() {
-  const op = document.getElementById('busca-op-carregamento')?.value.trim();
-  if (!op) return alert("Informe a OP.");
-
-  try {
-    const q = query(collection(db, "operacoes"), where("op", "==", op));
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.empty) return alert("Operação não encontrada.");
-
-    const docSnap = querySnapshot.docs[0];
-    carregarDadosDoca(docSnap.id, docSnap.data());
-  } catch (e) {
-    alert("Erro ao buscar OP.");
-  }
-};
-
-async function carregarOperacaoPorDocId(docId) {
-  const docSnapshot = await getDoc(doc(db, "operacoes", docId));
-  if (!docSnapshot.exists()) throw new Error("Registro não encontrado.");
-  carregarDadosDoca(docSnapshot.id, docSnapshot.data());
-}
-
-function carregarDadosDoca(id, data) {
-  operacaoAtualId = id;
-  document.getElementById('carr-op').innerText = data.op || '--';
-  document.getElementById('carr-placa').innerText = data.placaVeiculo || '--';
-  document.getElementById('carr-motorista').innerText = data.motorista || '--';
-  document.getElementById('carr-operacao').innerText = data.tipoOperacao || '--';
-  document.getElementById('carr-entrada').innerText = formatDateTime(data.horarioEntrada);
-
-  const agoraISO = new Date().toISOString().slice(0, 16);
-  document.getElementById('dataHorarioProcesso').value = agoraISO;
-
-  if (data.status === "EM_CARREGAMENTO" || data.status === "EM_DESCARGA") {
-    document.getElementById('fase-inicio').classList.add('hidden');
-    document.getElementById('fase-fim').classList.remove('hidden');
-  } else if (data.status === "ENTRADA_REGISTRADA") {
-    document.getElementById('fase-inicio').classList.remove('hidden');
-    document.getElementById('fase-fim').classList.add('hidden');
-  } else {
-    alert("Esta operação já passou da fase de doca!");
-    return;
-  }
-
-  document.getElementById('secao-processo-carregamento').classList.remove('hidden');
-}
-
-window.iniciarEtapaCarregamento = async function() {
-  if (!operacaoAtualId) return;
-  const docRef = doc(db, "operacoes", operacaoAtualId);
-  const snap = await getDoc(docRef);
-  const tipo = snap.data().tipoOperacao;
-
-  const novoStatus = tipo === "CARREGAMENTO" ? "EM_CARREGAMENTO" : "EM_DESCARGA";
-
-  try {
-    await updateDoc(docRef, {
-      status: novoStatus,
-      inicioDoca: serverTimestamp()
-    });
-    alert("Etapa iniciada! Preencha as informações para passar para a próxima fase.");
-    document.getElementById('fase-inicio').classList.add('hidden');
-    document.getElementById('fase-fim').classList.remove('hidden');
-  } catch (e) {
-    alert("Erro ao atualizar status.");
-  }
-};
-
-window.finalizarEtapaCarregamento = async function() {
-  if (!operacaoAtualId) return;
-  const dataHorario = document.getElementById('dataHorarioProcesso').value;
-  const conferente = document.getElementById('nomeConferente').value.trim();
-  const obs = document.getElementById('observacoesConferencia').value.trim();
-
-  if (!dataHorario || !conferente) {
-    return alert("Preencha a data/horário e o nome do conferente para prosseguir.");
-  }
-
-  try {
-    const docRef = doc(db, "operacoes", operacaoAtualId);
-    const snap = await getDoc(docRef);
-    const opNumero = snap.data().op;
-
-    await updateDoc(docRef, {
-      status: "AGUARDANDO_BALANCA_SAIDA",
-      fimDocaDataHorario: dataHorario,
-      conferenteDoca: conferente,
-      observacoesDoca: obs
-    });
-
-    alert("Processo concluído com sucesso! Redirecionando para a Balança de Saída.");
-    
-    document.getElementById('secao-processo-carregamento').classList.add('hidden');
-    operacaoAtualId = null;
-
-    window.navegarPara('aba-balanca');
-    const inputBalanca = document.getElementById('input-buscar-op');
-    if (inputBalanca && opNumero) {
-      inputBalanca.value = opNumero;
-      window.buscarOPBalanca();
-    }
-  } catch (e) {
-    alert("Erro ao finalizar etapa.");
-  }
-};
-
-// ==========================================================================
-// 3. BALANÇA SAÍDA
-// ==========================================================================
-window.buscarOPBalanca = async function() {
-  const opBusca = document.getElementById('input-buscar-op')?.value.trim();
-  if (!opBusca) return alert("Informe a OP.");
-
-  try {
-    const q = query(collection(db, "operacoes"), where("op", "==", opBusca));
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) return alert("Operação não encontrada.");
-
-    const docSnapshot = querySnapshot.docs[0];
-    const data = docSnapshot.data();
-
-    if (data.status !== "AGUARDANDO_BALANCA_SAIDA") {
-      return alert("Esta operação precisa passar primeiro pela etapa de Carregamento/Descarga.");
-    }
-
-    operacaoAtualId = docSnapshot.id;
-
-    document.getElementById('resumo-op').innerText = data.op || '--';
-    document.getElementById('resumo-placa').innerText = data.placaVeiculo || '--';
-    document.getElementById('resumo-motorista').innerText = data.motorista || '--';
-    document.getElementById('resumo-operacao').innerText = data.tipoOperacao || '--';
-
-    document.getElementById('data-horario-saida').value = new Date().toISOString().slice(0, 16);
-    document.getElementById('secao-finalizacao')?.classList.remove('hidden');
-  } catch (erro) {
-    console.error(erro);
-  }
-};
-
-window.finalizarOperacao = async function() {
-  if (!operacaoAtualId) return alert("Nenhuma operação selecionada.");
-
-  const conferente = document.getElementById('nome-conferente')?.value.trim();
-  const dataHorarioSaida = document.getElementById('data-horario-saida')?.value;
-  const pesoFinal = parseFloat(document.getElementById('peso-final')?.value);
-
-  if (!conferente || !dataHorarioSaida || isNaN(pesoFinal) || pesoFinal <= 0) {
-    alert("Preencha corretamente o nome do conferente, data/horário e peso de saída.");
-    return;
-  }
-
-  try {
-    const docRef = doc(db, "operacoes", operacaoAtualId);
-    const agora = serverTimestamp();
-
-    await updateDoc(docRef, {
-      horarioSaida: agora,
-      status: "CONCLUIDO",
-      pesagemSaida: {
-        pesoFinal: pesoFinal,
-        conferente: conferente,
-        dataHorarioSaida: dataHorarioSaida
-      }
-    });
-
-    alert("Operação finalizada e veículo liberado com sucesso!");
-    
-    document.getElementById('secao-finalizacao')?.classList.add('hidden');
-    document.getElementById('form-finalizar-op')?.reset();
-    operacaoAtualId = null;
-
-    window.navegarPara('aba-entrada');
-  } catch (erro) {
-    alert("Erro ao gravar saída no banco.");
-  }
-};
-
-// ==========================================================================
-// 4. PAINEL ADMIN, GRÁFICOS & RELATÓRIOS
-// ==========================================================================
-window.carregarHistoricoOperacoes = async function() {
-  const tbody = document.getElementById('tbody-historico');
-  if (!tbody) return;
-
-  try {
-    const querySnapshot = await getDocs(collection(db, "operacoes"));
-    const lista = [];
-
-    querySnapshot.forEach((docSnap) => {
-      lista.push({ id: docSnap.id, ...docSnap.data() });
-    });
-
-    renderizarTabelaEGráficos(lista);
-  } catch (erro) {
-    console.error("Erro ao carregar dados do admin:", erro);
-  }
-};
-
-function renderizarTabelaEGráficos(lista) {
-  const tbody = document.getElementById('tbody-historico');
-  if (!tbody) return;
-
-  tbody.innerHTML = "";
-
-  let patio = 0;
-  let doca = 0;
-  let concluidosHoje = 0;
-  qtdCargaGlobal = 0;
-  qtdDescargaGlobal = 0;
-
-  const hoje = new Date().toDateString();
-
-  lista.forEach((data) => {
-    if (data.status === "ENTRADA_REGISTRADA") patio++;
-    if (data.status === "EM_CARREGAMENTO" || data.status === "EM_DESCARGA") doca++;
-
-    if (data.status === "CONCLUIDO") {
-      const dSaida = data.horarioSaida?.toDate ? data.horarioSaida.toDate().toDateString() : null;
-      if (dSaida === hoje) concluidosHoje++;
-    }
-
-    if (data.tipoOperacao === "CARREGAMENTO") qtdCargaGlobal++;
-    if (data.tipoOperacao === "DESCARGA") qtdDescargaGlobal++;
-
-    const tr = document.createElement('tr');
-    tr.style.borderBottom = "1px solid #e1e8ef";
-    tr.innerHTML = `
-      <td style="padding: 10px;"><strong>${data.op || '--'}</strong></td>
-      <td style="padding: 10px;">${data.placaVeiculo || '--'}</td>
-      <td style="padding: 10px;">${data.motorista || '--'}</td>
-      <td style="padding: 10px;">${data.tipoOperacao || '--'}</td>
-      <td style="padding: 10px;">${formatDateTime(data.horarioEntrada)}</td>
-      <td style="padding: 10px;">${data.pesagemSaida?.pesoFinal ? data.pesagemSaida.pesoFinal + ' kg' : 'Pendente'}</td>
-      <td style="padding: 10px;"><span>${data.status || 'ENTRADA'}</span></td>
-      <td style="padding: 10px; text-align: center;">
-        <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem;" onclick="imprimirComprovanteADM('${data.id}')">
-          🖨️ Imprimir / PDF
-        </button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  const elPatio = document.getElementById('stat-patio');
-  const elDoca = document.getElementById('stat-carregando');
-  const elFinalizados = document.getElementById('stat-finalizados');
-
-  if (elPatio) elPatio.innerText = patio;
-  if (elDoca) elDoca.innerText = doca;
-  if (elFinalizados) elFinalizados.innerText = concluidosHoje;
-
-  const tipoSelecionado = document.getElementById('tipo-grafico-select')?.value || 'bar';
-  renderizarGrafico(qtdCargaGlobal, qtdDescargaGlobal, tipoSelecionado);
-}
-
-function renderizarGrafico(carga, descarga, tipo = 'bar') {
-  const ctx = document.getElementById('graficoOperacoes')?.getContext('2d');
-  if (!ctx) return;
-
-  if (meuGrafico) {
-    meuGrafico.destroy();
-  }
-
-  meuGrafico = new Chart(ctx, {
-    type: tipo,
-    data: {
-      labels: ['Carregamento', 'Descarga'],
-      datasets: [{
-        label: 'Quantidade de Operações',
-        data: [carga, descarga],
-        backgroundColor: tipo === 'line' ? 'rgba(10, 61, 98, 0.2)' : ['#0a3d62', '#3c6382'],
-        borderColor: '#0a3d62',
-        borderWidth: 2,
-        fill: tipo === 'line'
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: { beginAtZero: true, ticks: { stepSize: 1 } }
-      }
-    }
-  });
-}
-
-window.alterarTipoGrafico = function(tipo) {
-  renderizarGrafico(qtdCargaGlobal, qtdDescargaGlobal, tipo);
-};
-
-window.filtrarRelatorio = async function() {
-  const dtInicio = document.getElementById('filtro-data-inicio')?.value;
-  const dtFim = document.getElementById('filtro-data-fim')?.value;
-  const tipoOp = document.getElementById('filtro-tipo-operacao')?.value || 'TODOS';
-
-  try {
-    const querySnapshot = await getDocs(collection(db, "operacoes"));
-    const filtrados = [];
-
-    const dInicio = dtInicio ? new Date(dtInicio + 'T00:00:00') : null;
-    const dFim = dtFim ? new Date(dtFim + 'T23:59:59') : null;
-
-    querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      let atendeData = true;
-      let atendeTipo = true;
-
-      if (dInicio && dFim && data.horarioEntrada) {
-        const dtEntrada = data.horarioEntrada.toDate ? data.horarioEntrada.toDate() : new Date(data.horarioEntrada);
-        atendeData = dtEntrada >= dInicio && dtEntrada <= dFim;
-      }
-
-      if (tipoOp !== 'TODOS') {
-        atendeTipo = data.tipoOperacao === tipoOp;
-      }
-
-      if (atendeData && atendeTipo) {
-        filtrados.push({ id: docSnap.id, ...data });
-      }
-    });
-
-    renderizarTabelaEGráficos(filtrados);
-  } catch (e) {
-    alert("Erro ao filtrar relatório.");
-  }
-};
-
-window.imprimirRelatorioGeral = function() {
-  window.print();
-};
-
-// Configuração de ouvintes quando o DOM está carregado
-document.addEventListener('DOMContentLoaded', () => {
-  const selectTipo = document.getElementById('tipo-grafico-select');
-  if (selectTipo) {
-    selectTipo.addEventListener('change', (e) => {
-      window.alterarTipoGrafico(e.target.value);
-    });
-  }
-});
-
-// ==========================================================================
-// 5. GERADOR DE IMPRESSÃO / PDF PARA ADMINISTRADOR
-// ==========================================================================
-window.imprimirComprovanteADM = async function(docId) {
-  try {
-    const docRef = doc(db, "operacoes", docId);
-    const snap = await getDoc(docRef);
-
-    if (!snap.exists()) {
-      alert("Registro não encontrado.");
-      return;
-    }
-
-    const data = snap.data();
-
-    const win = window.open('', '_blank', 'width=800,height=900');
-    
-    win.document.write(`
-      <!DOCTYPE html>
-      <html lang="pt-BR">
-      <head>
-        <meta charset="UTF-8">
-        <title>Comprovante - ${data.op || 'Operação'}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 30px; color: #333; line-height: 1.5; }
-          .header { text-align: center; border-bottom: 2px solid #0a3d62; padding-bottom: 15px; margin-bottom: 20px; }
-          .header h2 { margin: 0; color: #0a3d62; }
-          .header p { margin: 5px 0 0 0; font-size: 14px; color: #666; }
-          .section-title { background: #f1f4f8; padding: 6px 10px; font-weight: bold; border-left: 4px solid #0a3d62; margin-top: 20px; }
-          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-          .row { font-size: 14px; }
-          .label { font-weight: bold; color: #555; }
-          .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #ddd; padding-top: 10px; }
-          @media print {
-            body { padding: 0; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h2>TRANSPORTADORA PAULÃO</h2>
-          <p>Relatório de Operação de Pátio & Balança</p>
-        </div>
-
-        <div class="section-title">DADOS DA OPERAÇÃO</div>
-        <div class="grid">
-          <div class="row"><span class="label">Nº OP:</span> ${data.op || '--'}</div>
-          <div class="row"><span class="label">Status:</span> ${data.status || '--'}</div>
-          <div class="row"><span class="label">Tipo de Operação:</span> ${data.tipoOperacao || '--'}</div>
-          <div class="row"><span class="label">Data de Entrada:</span> ${formatDateTime(data.horarioEntrada)}</div>
-        </div>
-
-        <div class="section-title">DADOS DO VEÍCULO E CONDUTOR</div>
-        <div class="grid">
-          <div class="row"><span class="label">Placa:</span> ${data.placaVeiculo || '--'}</div>
-          <div class="row"><span class="label">Tipo de Veículo:</span> ${data.tipoVeiculo || '--'}</div>
-          <div class="row"><span class="label">Motorista:</span> ${data.motorista || '--'}</div>
-          <div class="row"><span class="label">CPF Motorista:</span> ${data.cpfMotorista || '--'}</div>
-          <div class="row"><span class="label">Ajudante:</span> ${data.ajudante || 'N/A'}</div>
-          <div class="row"><span class="label">CPF Ajudante:</span> ${data.cpfAjudante || 'N/A'}</div>
-        </div>
-
-        <div class="section-title">CONFERÊNCIA DE DOCA</div>
-        <div class="grid">
-          <div class="row"><span class="label">Conferente Doca:</span> ${data.conferenteDoca || 'Pendente'}</div>
-          <div class="row"><span class="label">Data/Hora Doca:</span> ${data.fimDocaDataHorario || '--'}</div>
-          <div class="row" style="grid-column: span 2;"><span class="label">Observações:</span> ${data.observacoesDoca || 'Nenhuma'}</div>
-        </div>
-
-        <div class="section-title">PESAGEM E LIBERAÇÃO</div>
-        <div class="grid">
-          <div class="row"><span class="label">Conferente Saída:</span> ${data.pesagemSaida?.conferente || 'Pendente'}</div>
-          <div class="row"><span class="label">Data/Hora Saída:</span> ${data.pesagemSaida?.dataHorarioSaida || '--'}</div>
-          <div class="row"><span class="label">Peso Final Saída:</span> ${data.pesagemSaida?.pesoFinal ? data.pesagemSaida.pesoFinal + ' kg' : 'Pendente'}</div>
-        </div>
-
-        <div class="footer">
-          <p>Documento gerado pelo Sistema de Gestão de Pátio - Transportadora Paulão em ${new Date().toLocaleString('pt-BR')}</p>
-        </div>
-
-        <script>
-          window.onload = function() {
-            window.print();
-          };
-        <\/script>
-      </body>
-      </html>
-    `);
-
-    win.document.close();
-  } catch (err) {
-    console.error("Erro ao gerar impressão/PDF:", err);
-    alert("Falha ao abrir visualização do documento.");
   }
 };

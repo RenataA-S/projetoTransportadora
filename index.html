@@ -5,20 +5,297 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistema de Gestão de Pátio - Transportadora Paulão</title>
   
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Bibliotecas Externas -->
+  <!-- Bibliotecas Externas (QR Code, Scanner Câmera e Gráficos via CDN) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <!-- Chart.js para o Gráfico do Painel Admin -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --primary: #0a3d62;
+      --primary-hover: #0c2461;
+      --accent: #3c6382;
+      --bg-color: #f1f4f8;
+      --card-bg: #ffffff;
+      --text-main: #2c3e50;
+      --border-color: #e1e8ef;
+      --success: #079992;
+      --success-hover: #009432;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+
+    /* Header & Navegação */
+    .main-header {
+      background-color: var(--primary);
+      color: #fff;
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .system-logo-svg {
+      width: 44px;
+      height: 44px;
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .main-header h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .system-title {
+      font-size: 0.8rem;
+      color: #82ccdd;
+    }
+
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-menu a, .btn-logout {
+      color: #dcdde1;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      padding: 8px 14px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+
+    .nav-menu a:hover, .nav-menu a.active {
+      background-color: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    /* Containers e Cards */
+    .container {
+      max-width: 1000px;
+      margin: 28px auto;
+      padding: 0 16px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-color);
+    }
+
+    .card-header {
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+    }
+
+    .card-header h2 {
+      font-size: 1.3rem;
+      color: var(--primary);
+    }
+
+    .card-subtitle {
+      font-size: 0.85rem;
+      color: #7f8c8d;
+      margin-top: 4px;
+    }
+
+    /* Form Grid */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #34495e;
+      margin-bottom: 6px;
+    }
+
+    .badge-opcional {
+      font-weight: normal;
+      color: #95a5a6;
+      font-size: 0.78rem;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background-color: #f8fafc;
+    }
+
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--primary);
+      background-color: #fff;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(10, 61, 98, 0.12);
+    }
+
+    /* Botões */
+    .actions-wrapper {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-lg { padding: 16px 28px; font-size: 1.1rem; }
+    .btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+
+    .btn-primary { background-color: var(--primary); color: #fff; }
+    .btn-primary:hover { background-color: var(--primary-hover); }
+
+    .btn-outline { background-color: transparent; border: 1px solid var(--accent); color: var(--accent); }
+    .btn-outline:hover { background-color: #eaf2f8; }
+
+    .btn-secondary { background-color: #718093; color: #fff; }
+
+    .btn-success { background-color: var(--success); color: #fff; }
+    .btn-success:hover { background-color: var(--success-hover); }
+
+    .hidden { display: none !important; }
+
+    /* Grid de Docas */
+    .docas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 15px;
+    }
+
+    .doca-card {
+      border-radius: 8px;
+      padding: 14px;
+      border: 2px solid var(--border-color);
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 120px;
+    }
+
+    .doca-card.livre { border-color: #2ecc71; background-color: #f0fff4; }
+    .doca-card.ocupada { border-color: #3498db; background-color: #ebf5fb; }
+
+    .doca-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .doca-status-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+
+    .badge-livre { background: #2ecc71; color: #fff; }
+    .badge-ocupada { background: #3498db; color: #fff; }
+
+    .doca-info-vazio { font-size: 0.8rem; color: #95a5a6; font-style: italic; }
+    .doca-detalhes { font-size: 0.8rem; color: #34495e; margin-bottom: 10px; }
+
+    /* Tabelas */
+    .table-custom { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
+    .table-custom th, .table-custom td { padding: 10px 12px; border-bottom: 1px solid var(--border-color); }
+    .table-custom th { background-color: #f8fafc; color: #475569; font-weight: 600; }
+
+    /* Badges de Status */
+    .badge-status { padding: 4px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: bold; }
+    .status-CADASTRADO { background: #e2e8f0; color: #475569; }
+    .status-AGUARDANDO_CHAMADA { background: #fef3c7; color: #92400e; }
+    .status-CHAMADO { background: #fed7aa; color: #9a3412; }
+    .status-NA_DOCA { background: #dbeafe; color: #1e40af; }
+    .status-EM_OPERACAO { background: #e0e7ff; color: #3730a3; }
+    .status-FINALIZADO { background: #d1fae5; color: #065f46; }
+    .status-SAIDA_LIBERADA { background: #10b981; color: #ffffff; }
+
+    /* Dashboard Cards */
+    .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 15px; }
+    .stat-card { text-align: center; padding: 16px; margin-bottom: 0; }
+    .stat-number { font-size: 2rem; font-weight: bold; color: var(--primary); display: block; margin-top: 5px; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 2000;
+    }
+    .modal-content { background: #fff; padding: 24px; border-radius: 12px; width: 100%; max-width: 420px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
+
+    /* Ticket e Alertas */
+    .qr-code-frame { display: flex; justify-content: center; margin: 15px 0; }
+    .ticket-info .info-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #eee; font-size: 0.88rem; }
+    .alert { padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem; }
+    .alert-danger { background-color: #f8d7da; color: #721c24; }
+    .alert-success { background-color: #d4edda; color: #155724; }
+
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .nav-menu { flex-wrap: wrap; }
+    }
+  </style>
 </head>
 <body>
 
-  <!-- CABEÇALHO DE NAVEGAÇÃO -->
+  <!-- CABEÇALHO PRINCIPAL -->
   <header class="main-header" id="app-header">
     <div class="logo-container">
-      <img src="img/LogoTransportadora.jpeg" alt="Logo Transportadora Paulão" class="system-logo" onerror="this.src='https://via.placeholder.com/46?text=LOGISTICA'">
+      <div class="system-logo-svg">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#0a3d62" width="28" height="28">
+          <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+        </svg>
+      </div>
       <div>
         <h1>Transportadora Paulão</h1>
         <span class="system-title" id="page-subtitle">Controle de Portaria & Pátio</span>
@@ -26,23 +303,46 @@
     </div>
     
     <nav class="nav-menu" id="nav-menu">
-      <a href="#" onclick="navegarPara('aba-entrada')" class="nav-link active">Entrada</a>
-      <a href="#" onclick="navegarPara('aba-carregamento')" class="nav-link">Carregamento / Descarga</a>
+      <a href="#" onclick="navegarPara('aba-entrada')" class="nav-link active">Portaria / Entrada</a>
+      <a href="#" onclick="navegarPara('aba-checkin')" class="nav-link">Check-in Motorista</a>
+      <a href="#" onclick="navegarPara('aba-docas')" class="nav-link">Painel do Líder / Docas</a>
       <a href="#" onclick="navegarPara('aba-balanca')" class="nav-link">Balança Saída</a>
+      <a href="#" onclick="navegarPara('aba-consulta')" class="nav-link">Consulta Status</a>
       <a href="#" onclick="navegarPara('aba-admin')" class="nav-link">Painel Admin</a>
-      <button id="btn-logout" class="btn-logout">Sair</button>
+      <button class="btn-logout" id="btn-logout">Sair</button>
     </nav>
   </header>
 
   <!-- CONTEÚDO PRINCIPAL -->
   <main class="container">
 
-    <!-- 1. ABA: ENTRADA -->
+    <!-- 0. ABA: LOGIN DE USUÁRIO -->
+    <div id="aba-login" class="aba-conteudo hidden">
+      <section class="card" style="max-width: 400px; margin: 40px auto;">
+        <div class="card-header" style="text-align: center;">
+          <h2>Autenticação</h2>
+          <p class="card-subtitle">Acesse o sistema para continuar</p>
+        </div>
+        <form id="form-login" onsubmit="event.preventDefault(); const e=document.getElementById('login-email').value; const s=document.getElementById('login-senha').value; window.fazerLogin(e,s);">
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label for="login-email">E-MAIL</label>
+            <input type="email" id="login-email" required placeholder="seu.email@empresa.com">
+          </div>
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label for="login-senha">SENHA</label>
+            <input type="password" id="login-senha" required placeholder="******">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Entrar no Sistema</button>
+        </form>
+      </section>
+    </div>
+
+    <!-- 1. ABA: PORTARIA / ENTRADA DE VEÍCULOS -->
     <div id="aba-entrada" class="aba-conteudo">
       <section class="card">
         <div class="card-header">
           <h2>Registro de Entrada de Veículo</h2>
-          <p class="card-subtitle">Cadastre o veículo para liberar acesso ao pátio e gerar o código de acompanhamento</p>
+          <p class="card-subtitle">Cadastre os dados da carga e do motorista para liberação ao pátio</p>
         </div>
 
         <form id="form-entrada" onsubmit="event.preventDefault(); salvarEntrada();">
@@ -56,19 +356,12 @@
               <label for="tipo-veiculo">TIPO DE VEÍCULO *</label>
               <select id="tipo-veiculo" required>
                 <option value="">Selecione...</option>
-                <option value="Toco">Toco</option>
-                <option value="Truck">Truck</option>
                 <option value="Carreta">Carreta</option>
-                <option value="Bitrem">Bitrem</option>
-                <option value="VLC / Utilitário">VLC / Utilitário</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="tipo-operacao">TIPO DE OPERAÇÃO *</label>
-              <select id="tipo-operacao" required>
-                <option value="CARREGAMENTO">Carregamento</option>
-                <option value="DESCARGA">Descarga</option>
+                <option value="Truck">Truck</option>
+                <option value="Toco">Toco</option>
+                <option value="VUC">VUC</option>
+                <option value="Van">Van</option>
+                <option value="Outro">Outro</option>
               </select>
             </div>
 
@@ -78,33 +371,72 @@
             </div>
 
             <div class="form-group">
-              <label for="cpf-motorista">CPF DO MOTORISTA *</label>
+              <label for="cpf-motorista">CPF / DOCUMENTO MOTORISTA *</label>
               <input type="text" id="cpf-motorista" placeholder="000.000.000-00" maxlength="14" required class="input-cpf">
             </div>
 
+            <!-- CAMPOS: AJUDANTE -->
             <div class="form-group">
               <label for="nome-ajudante">NOME DO AJUDANTE <span class="badge-opcional">(Opcional)</span></label>
-              <input type="text" id="nome-ajudante" placeholder="Nome do ajudante" class="input-capitalizar">
+              <input type="text" id="nome-ajudante" placeholder="Nome completo do ajudante" class="input-capitalizar">
             </div>
 
             <div class="form-group">
-              <label for="cpf-ajudante">CPF DO AJUDANTE <span class="badge-opcional">(Opcional)</span></label>
+              <label for="cpf-ajudante">CPF / DOCUMENTO AJUDANTE <span class="badge-opcional">(Opcional)</span></label>
               <input type="text" id="cpf-ajudante" placeholder="000.000.000-00" maxlength="14" class="input-cpf">
+            </div>
+
+            <div class="form-group">
+              <label for="telefone-motorista">TELEFONE / CELULAR *</label>
+              <input type="text" id="telefone-motorista" placeholder="(11) 99999-9999" required>
+            </div>
+
+            <div class="form-group">
+              <label for="tipo-operacao">TIPO DE OPERAÇÃO *</label>
+              <select id="tipo-operacao" required>
+                <option value="CARREGAMENTO">Carregamento</option>
+                <option value="DESCARGA">Descarga</option>
+                <option value="COLETA">Coleta</option>
+                <option value="ENTREGA">Entrega</option>
+                <option value="TRANSFERENCIA">Transferência</option>
+                <option value="DEVOLUCAO">Devolução</option>
+                <option value="OUTRO">Outro</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="numero-carga">Nº CARGA / PEDIDO / NF *</label>
+              <input type="text" id="numero-carga" placeholder="Ex: CARGA-12345" required>
+            </div>
+
+            <div class="form-group">
+              <label for="transportadora">TRANSPORTADORA *</label>
+              <input type="text" id="transportadora" placeholder="Ex: Transportadora XYZ" required class="input-capitalizar">
+            </div>
+
+            <div class="form-group">
+              <label for="cliente">CLIENTE *</label>
+              <input type="text" id="cliente" placeholder="Ex: Cliente ABC" required class="input-capitalizar">
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+              <label for="observacao">OBSERVAÇÕES <span class="badge-opcional">(Opcional)</span></label>
+              <textarea id="observacao" rows="2" placeholder="Observações relevantes..."></textarea>
             </div>
           </div>
 
           <div class="actions-wrapper">
-            <button type="submit" class="btn btn-primary">Registrar Entrada</button>
+            <button type="submit" class="btn btn-primary">Registrar Entrada e Gerar Ticket</button>
           </div>
         </form>
       </section>
 
-      <!-- Resumo visual com QR Code -->
+      <!-- Ticket de Cadastro com QR Code -->
       <section id="area-ticket" class="card card-ticket hidden">
         <div class="ticket-wrapper">
-          <div class="ticket-header">
+          <div class="ticket-header" style="text-align: center; margin-bottom: 12px;">
             <h3>TRANSPORTADORA PAULÃO</h3>
-            <p>REGISTRO DE ENTRADA CONCLUÍDO</p>
+            <p style="font-size: 0.85rem; color: #555;">REGISTRO DE ENTRADA CONCLUÍDO</p>
           </div>
 
           <div class="qr-code-frame">
@@ -112,226 +444,851 @@
           </div>
 
           <div class="ticket-info">
-            <div class="info-row"><span>Nº OP:</span> <strong id="ticket-op">--</strong></div>
+            <div class="info-row"><span>ID ATENDIMENTO:</span> <strong id="ticket-id">--</strong></div>
+            <div class="info-row"><span>Nº OPERAÇÃO / CARGA:</span> <strong id="ticket-carga" style="color: #0a3d62;">--</strong></div>
             <div class="info-row"><span>PLACA:</span> <strong id="ticket-placa">--</strong></div>
             <div class="info-row"><span>MOTORISTA:</span> <strong id="ticket-motorista">--</strong></div>
+            <div class="info-row"><span>AJUDANTE:</span> <strong id="ticket-ajudante">--</strong></div>
             <div class="info-row"><span>OPERAÇÃO:</span> <strong id="ticket-operacao">--</strong></div>
-            <div class="info-row"><span>ENTRADA:</span> <strong id="ticket-data">--</strong></div>
+            <div class="info-row"><span>DOCA:</span> <strong id="ticket-doca">Pátio / Não Alocado</strong></div>
+            <div class="info-row"><span>CADASTRO:</span> <strong id="ticket-data">--</strong></div>
           </div>
 
-          <div class="ticket-actions">
+          <div class="ticket-actions" style="margin-top: 15px; display: flex; gap: 10px;">
+            <button class="btn btn-primary" onclick="imprimirTicketEntrada()" style="flex: 1;">🖨️ Imprimir Ticket</button>
             <button class="btn btn-outline" onclick="document.getElementById('area-ticket').classList.add('hidden')">Concluir</button>
           </div>
         </div>
       </section>
     </div>
 
-    <!-- 2. ABA: CARREGAMENTO & DESCARGA -->
-    <div id="aba-carregamento" class="aba-conteudo hidden">
-      <section class="card">
-        <h2>Localizar Operação de Pátio</h2>
-        <div id="scanner-alert" class="alert hidden"></div>
-        <div class="form-group-row" style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
-          <input type="text" id="busca-op-carregamento" placeholder="Número OP-YYYYMMDD-XXXX" style="flex: 1; min-width: 200px;">
-          <button class="btn btn-secondary" onclick="buscarOPManual()">Buscar OP</button>
-          <button id="btn-habilitar" class="btn btn-primary" onclick="habilitarCamera()">📷 Ler QR Code</button>
-        </div>
+    <!-- 2. ABA: CHECK-IN DO MOTORISTA -->
+    <div id="aba-checkin" class="aba-conteudo hidden">
+      <section class="card" style="text-align: center;">
+        <h2>Check-in de Estacionamento no Pátio</h2>
+        <p class="card-subtitle" style="margin-bottom: 20px;">Escaneie o QR Code do seu Ticket de Entrada para confirmar presença na fila do pátio.</p>
 
-        <div id="reader" class="hidden" style="width: 100%; max-width: 400px; margin: 15px auto;"></div>
-      </section>
+        <div id="checkin-alert" class="alert hidden"></div>
 
-      <section id="secao-processo-carregamento" class="card hidden">
-        <h3>Controle de Doca (Carga / Descarga)</h3>
-        
-        <div class="ticket-info" style="margin: 15px 0;">
-          <div class="info-row"><span>Nº OP:</span> <strong id="carr-op">--</strong></div>
-          <div class="info-row"><span>Placa:</span> <strong id="carr-placa">--</strong></div>
-          <div class="info-row"><span>Motorista:</span> <strong id="carr-motorista">--</strong></div>
-          <div class="info-row"><span>Operação:</span> <strong id="carr-operacao">--</strong></div>
-          <div class="info-row"><span>Data/Hora Entrada:</span> <strong id="carr-entrada">--</strong></div>
-        </div>
+        <button id="btn-scan-checkin" class="btn btn-primary btn-lg" onclick="habilitarScannerCheckin()">📷 ESCANEAR QR CODE (CHECK-IN)</button>
 
-        <div id="fase-inicio">
-          <h4>Iniciar Etapa de Doca</h4>
-          <p style="font-size: 0.85rem; color: #666; margin-bottom: 10px;">Confirme o início do carregamento/descarga para liberar a próxima fase.</p>
-          <button type="button" class="btn btn-primary" onclick="iniciarEtapaCarregamento()">Iniciar Processo</button>
-        </div>
+        <div id="reader-checkin" class="hidden" style="width: 100%; max-width: 400px; margin: 20px auto; border-radius: 8px; overflow: hidden;"></div>
 
-        <div id="fase-fim" class="hidden" style="margin-top: 15px;">
-          <h4 id="titulo-fase-fim">Finalizar e Conferir Doca</h4>
-          <div class="form-grid" style="margin-top: 10px;">
-            <div class="form-group">
-              <label for="dataHorarioProcesso">DATA E HORÁRIO DO CARREGAMENTO/DESCARGA *</label>
-              <input type="datetime-local" id="dataHorarioProcesso" required>
-            </div>
-            <div class="form-group">
-              <label for="nomeConferente">NOME DO CONFERENTE *</label>
-              <input type="text" id="nomeConferente" required placeholder="Ex: Carlos Oliveira" class="input-capitalizar">
-            </div>
-            <div class="form-group" style="grid-column: span 2;">
-              <label for="observacoesConferencia">OBSERVAÇÕES / AVARIAS / DIVERGÊNCIAS</label>
-              <textarea id="observacoesConferencia" rows="2" placeholder="Avarias ou observações..."></textarea>
-            </div>
+        <div id="card-confirmacao-checkin" class="card hidden alert-success" style="margin-top: 20px; text-align: left;">
+          <h3 style="color: #155724; margin-bottom: 10px;">✅ Check-in Realizado com Sucesso!</h3>
+          <p>Seu veículo está oficialmente na fila de espera para chamada de doca.</p>
+          <div class="ticket-info" style="margin-top: 15px; background: #fff; padding: 12px; border-radius: 6px;">
+            <div class="info-row"><span>Atendimento:</span> <strong id="checkin-resumo-id">--</strong></div>
+            <div class="info-row"><span>Placa:</span> <strong id="checkin-resumo-placa">--</strong></div>
+            <div class="info-row"><span>Motorista:</span> <strong id="checkin-resumo-motorista">--</strong></div>
+            <div class="info-row"><span>Status Atual:</span> <strong style="color: #079992;">AGUARDANDO_CHAMADA</strong></div>
           </div>
-          <button type="button" class="btn btn-success" style="margin-top: 15px;" onclick="finalizarEtapaCarregamento()">Concluir Doca e Liberar para Balança</button>
         </div>
       </section>
     </div>
 
-    <!-- 3. ABA: BALANÇA SAÍDA -->
+    <!-- 3. ABA: PAINEL DO LÍDER E GESTÃO DE DOCAS -->
+    <div id="aba-docas" class="aba-conteudo hidden">
+      <section class="card">
+        <h2>Grid de Controle das Docas (Tempo Real)</h2>
+        <div class="docas-grid" id="container-docas-grid"></div>
+      </section>
+
+      <section class="card">
+        <h2>Fila de Espera (Aguardando Chamada - FIFO)</h2>
+        <div style="overflow-x: auto; margin-top: 15px;">
+          <table class="table-custom">
+            <thead>
+              <tr>
+                <th>Pos.</th>
+                <th>Check-in</th>
+                <th>ID Atendimento</th>
+                <th>Placa</th>
+                <th>Motorista</th>
+                <th>Operação</th>
+                <th>Transportadora</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-fila-espera">
+              <tr><td colspan="8" style="text-align:center;">Carregando fila...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Escanear QR Code na Doca (Validação / Início / Finalização)</h2>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="btn btn-primary" onclick="habilitarScannerDoca()">📷 Leitor de QR Code na Doca</button>
+        </div>
+        <div id="reader-doca" class="hidden" style="width: 100%; max-width: 400px; margin: 20px auto;"></div>
+      </section>
+    </div>
+
+    <!-- Modal para Seleção de Doca -->
+    <div id="modal-chamar-doca" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h3>Chamar Veículo para Doca</h3>
+        <p style="margin-bottom: 15px; color: #555;">Selecione uma doca livre para encaminhar o veículo <strong id="modal-placa">--</strong>:</p>
+        
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label for="select-doca-chamar">SELECIONE A DOCA *</label>
+          <select id="select-doca-chamar">
+            <option value="Doca 01">Doca 01</option>
+            <option value="Doca 02">Doca 02</option>
+            <option value="Doca 03">Doca 03</option>
+            <option value="Doca 04">Doca 04</option>
+            <option value="Doca 05">Doca 05</option>
+            <option value="Doca 06">Doca 06</option>
+            <option value="Doca 07">Doca 07</option>
+            <option value="Doca 08">Doca 08</option>
+            <option value="Doca 09">Doca 09</option>
+            <option value="Doca 10">Doca 10</option>
+          </select>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="btn btn-secondary" onclick="fecharModalChamar()">Cancelar</button>
+          <button class="btn btn-success" onclick="confirmarChamadaDoca()">Confirmar Chamada</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. ABA: BALANÇA SAÍDA -->
     <div id="aba-balanca" class="aba-conteudo hidden">
       <section class="card">
-        <h2>Localizar Operação para Pesagem e Encerramento</h2>
-        <form id="form-buscar-op" class="form-row" style="display: flex; gap: 12px; margin-top: 12px;" onsubmit="event.preventDefault(); buscarOPBalanca();">
-          <input type="text" id="input-buscar-op" placeholder="Informe a OP ex: OP-20260902-9777" style="flex: 1;" required>
-          <button type="submit" class="btn btn-primary">Buscar OP</button>
+        <h2>Localizar Atendimento para Pesagem e Liberação de Saída</h2>
+        <form id="form-buscar-balanca" style="display: flex; gap: 12px; margin-top: 12px;" onsubmit="event.preventDefault(); buscarAtendimentoBalanca();">
+          <input type="text" id="input-buscar-balanca" placeholder="Informe o ID ex: ATD-20260902-00001 ou Placa" style="flex: 1;" required>
+          <button type="submit" class="btn btn-primary">Buscar Veículo</button>
         </form>
       </section>
 
-      <section id="secao-finalizacao" class="card hidden">
-        <h2>Consolidação de Pesagem e Saída</h2>
+      <section id="secao-liberacao-saida" class="card hidden">
+        <h2>Consolidação e Liberação de Saída</h2>
         
         <div class="ticket-info" style="margin-bottom: 20px;">
-          <div class="info-row"><span>Nº OP:</span> <strong id="resumo-op">--</strong></div>
-          <div class="info-row"><span>PLACA:</span> <strong id="resumo-placa">--</strong></div>
-          <div class="info-row"><span>MOTORISTA:</span> <strong id="resumo-motorista">--</strong></div>
-          <div class="info-row"><span>TIPO OPERAÇÃO:</span> <strong id="resumo-operacao">--</strong></div>
+          <div class="info-row"><span>ID ATENDIMENTO:</span> <strong id="bal-id">--</strong></div>
+          <div class="info-row"><span>PLACA:</span> <strong id="bal-placa">--</strong></div>
+          <div class="info-row"><span>MOTORISTA:</span> <strong id="bal-motorista">--</strong></div>
+          <div class="info-row"><span>AJUDANTE:</span> <strong id="bal-ajudante">--</strong></div>
+          <div class="info-row"><span>OPERAÇÃO:</span> <strong id="bal-operacao">--</strong></div>
+          <div class="info-row"><span>DOCA UTILIZADA:</span> <strong id="bal-doca">--</strong></div>
+          <div class="info-row"><span>STATUS ATUAL:</span> <strong id="bal-status">--</strong></div>
         </div>
 
-        <form id="form-finalizar-op" onsubmit="event.preventDefault(); finalizarOperacao();">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="nome-conferente">NOME DO CONFERENTE DE SAÍDA *</label>
-              <input type="text" id="nome-conferente" placeholder="Ex: João Silva" required class="input-capitalizar">
-            </div>
-
-            <div class="form-group">
-              <label for="data-horario-saida">DATA E HORÁRIO DA SAÍDA *</label>
-              <input type="datetime-local" id="data-horario-saida" required>
-            </div>
-
-            <div class="form-group" style="grid-column: span 2;">
-              <label for="peso-final">PESO FINAL DA BALANÇA (KG) *</label>
-              <input type="number" id="peso-final" step="0.01" placeholder="Ex: 24500" required>
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 20px;">FINALIZAR OPERAÇÃO E LIBERAR VEÍCULO</button>
-        </form>
+        <button type="button" class="btn btn-success" style="width: 100%; font-size: 1.1rem;" onclick="confirmarSaidaBalança()">
+          🚚 CONFIRMAR SAÍDA E LIBERAR PORTARIA
+        </button>
       </section>
     </div>
 
-    <!-- 4. ABA: PAINEL ADMINISTRATIVO -->
+    <!-- 4.1. ABA: CONSULTA STATUS PÚBLICA / MOTORISTA -->
+    <div id="aba-consulta" class="aba-conteudo hidden">
+      <section class="card">
+        <div class="card-header">
+          <h2>Consultar Status de Atendimento</h2>
+          <p class="card-subtitle">Informe o ID do Atendimento ou a Placa para acompanhar a posição</p>
+        </div>
+        <form id="form-consulta-status" style="display: flex; gap: 12px; margin-top: 12px;" onsubmit="event.preventDefault(); consultarStatusPublico();">
+          <input type="text" id="input-consulta-termo" placeholder="Ex: ATD-20260902-00001 ou ABC1D23" style="flex: 1;" required>
+          <button type="submit" class="btn btn-primary">Consultar</button>
+        </form>
+      </section>
+
+      <section id="secao-resultado-consulta" class="card hidden">
+        <h2>Resultado da Consulta</h2>
+        <div class="ticket-info" style="margin-top: 15px;">
+          <div class="info-row"><span>ID ATENDIMENTO:</span> <strong id="cons-id">--</strong></div>
+          <div class="info-row"><span>PLACA:</span> <strong id="cons-placa">--</strong></div>
+          <div class="info-row"><span>MOTORISTA:</span> <strong id="cons-motorista">--</strong></div>
+          <div class="info-row"><span>AJUDANTE:</span> <strong id="cons-ajudante">--</strong></div>
+          <div class="info-row"><span>OPERAÇÃO:</span> <strong id="cons-operacao">--</strong></div>
+          <div class="info-row"><span>DOCA:</span> <strong id="cons-doca">--</strong></div>
+          <div class="info-row"><span>STATUS ATUAL:</span> <strong id="cons-status" style="color: #0a3d62;">--</strong></div>
+          <div class="info-row"><span>ÚLTIMA ATUALIZAÇÃO:</span> <strong id="cons-data">--</strong></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 5. ABA: PAINEL ADMINISTRATIVO -->
     <div id="aba-admin" class="aba-conteudo hidden">
       <section class="card">
-        <h2>Métricas e Status do Pátio</h2>
-        <div class="dashboard-cards" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 1rem;">
-          <div class="card" style="text-align: center; margin-bottom: 0; padding: 16px;">
-            <h4>Aguardando Pátio</h4>
-            <span id="stat-patio" class="stat-number" style="font-size: 2rem; font-weight: bold; color: var(--primary);">0</span>
+        <h2>Métricas Operacionais do Pátio</h2>
+        <div class="dashboard-cards">
+          <div class="card stat-card">
+            <h4>Aguardando Chamada</h4>
+            <span id="stat-espera" class="stat-number">0</span>
           </div>
-          <div class="card" style="text-align: center; margin-bottom: 0; padding: 16px;">
-            <h4>Em Doca</h4>
-            <span id="stat-carregando" class="stat-number" style="font-size: 2rem; font-weight: bold; color: var(--accent);">0</span>
+          <div class="card stat-card">
+            <h4>Chamados / A caminho</h4>
+            <span id="stat-chamados" class="stat-number" style="color: #e67e22;">0</span>
           </div>
-          <div class="card" style="text-align: center; margin-bottom: 0; padding: 16px;">
-            <h4>Concluídos Hoje</h4>
-            <span id="stat-finalizados" class="stat-number" style="font-size: 2rem; font-weight: bold; color: var(--success);">0</span>
+          <div class="card stat-card">
+            <h4>Na Doca / Em Operação</h4>
+            <span id="stat-doca" class="stat-number" style="color: var(--accent);">0</span>
+          </div>
+          <div class="card stat-card">
+            <h4>Finalizados / Liberados</h4>
+            <span id="stat-finalizados" class="stat-number" style="color: var(--success);">0</span>
           </div>
         </div>
       </section>
 
-      <!-- SEÇÃO DO GRÁFICO COM ALTERNÂNCIA DE TIPO E PORCENTAGEM -->
       <section class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
-          <h2>Distribuição de Operações (%)</h2>
-          <div class="form-group" style="margin: 0;">
-            <select id="tipo-grafico-select" style="padding: 6px 12px; font-weight: 600;">
-              <option value="bar">📊 Gráfico de Barras</option>
-              <option value="line">📈 Gráfico de Linha</option>
-            </select>
-          </div>
+          <h2>Volume de Operações</h2>
+          <select id="tipo-grafico-select" onchange="carregarHistoricoAtendimentos()" style="padding: 6px 12px; font-weight: 600;">
+            <option value="bar">📊 Gráfico de Barras</option>
+            <option value="line">📈 Gráfico de Linha</option>
+          </select>
         </div>
-        <div style="max-height: 300px; position: relative;">
+        <div style="max-height: 280px; position: relative;">
           <canvas id="graficoOperacoes"></canvas>
         </div>
       </section>
 
-      <!-- FILTRO DE RELATÓRIO EXPANDIDO COM OPÇÃO DE CARREGAMENTO / DESCARGA -->
       <section class="card">
-        <h2>Filtro de Relatório</h2>
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="filtro-data-inicio">Data Inicial</label>
-            <input type="date" id="filtro-data-inicio">
-          </div>
-          <div class="form-group">
-            <label for="filtro-data-fim">Data Final</label>
-            <input type="date" id="filtro-data-fim">
-          </div>
-          <div class="form-group" style="grid-column: span 2;">
-            <label for="filtro-tipo-operacao">Filtrar Operação</label>
-            <select id="filtro-tipo-operacao">
-              <option value="TODOS">Todas as Operações</option>
-              <option value="CARREGAMENTO">Somente Carregamento</option>
-              <option value="DESCARGA">Somente Descarga</option>
-            </select>
-          </div>
-        </div>
-        <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-          <button class="btn btn-primary" onclick="filtrarRelatorio()">Filtrar Operações</button>
-          <button class="btn btn-outline" onclick="carregarHistoricoOperacoes()">Limpar Filtros</button>
-          <button class="btn btn-success" onclick="imprimirRelatorioGeral()">🖨️ Imprimir Relatório Geral</button>
-        </div>
-      </section>
-
-      <section class="card">
-        <h2>Histórico de Operações e Auditoria</h2>
+        <h2>Histórico Geral de Atendimentos</h2>
         <div style="overflow-x: auto; margin-top: 10px;">
-          <table class="table-custom" style="width: 100%; border-collapse: collapse; text-align: left;">
+          <table class="table-custom">
             <thead>
-              <tr style="border-bottom: 2px solid var(--border-color);">
-                <th style="padding: 10px;">Nº OP</th>
-                <th style="padding: 10px;">Placa</th>
-                <th style="padding: 10px;">Motorista</th>
-                <th style="padding: 10px;">Operação</th>
-                <th style="padding: 10px;">Entrada</th>
-                <th style="padding: 10px;">Peso Saída</th>
-                <th style="padding: 10px;">Status</th>
-                <th style="padding: 10px; text-align: center;">Ações ADM</th>
+              <tr>
+                <th>ID Atendimento</th>
+                <th>Placa</th>
+                <th>Motorista</th>
+                <th>Operação</th>
+                <th>Doca</th>
+                <th>Cadastro</th>
+                <th>Status</th>
+                <th>Ação</th>
               </tr>
             </thead>
             <tbody id="tbody-historico">
+              <tr><td colspan="8" style="text-align:center;">Carregando histórico...</td></tr>
             </tbody>
           </table>
         </div>
       </section>
     </div>
 
-    <!-- 5. ABA: LOGIN -->
-    <div id="aba-login" class="aba-conteudo hidden">
-      <div class="card" style="width: 100%; max-width: 400px; margin: 40px auto; text-align: center;">
-        <img src="img/LogoTransportadora.jpeg" alt="Logo" class="system-logo" style="height: 60px; margin-bottom: 12px;" onerror="this.src='https://via.placeholder.com/60?text=LOGISTICA'">
-        <h2>Acesso ao Sistema</h2>
-
-        <form onsubmit="event.preventDefault(); const e = document.getElementById('login-email').value; const s = document.getElementById('login-senha').value; fazerLogin(e, s);">
-          <div class="form-group" style="margin-bottom: 12px; text-align: left;">
-            <label for="login-email">E-mail / Usuário</label>
-            <input type="email" id="login-email" placeholder="usuario@paulao.com" required>
-          </div>
-
-          <div class="form-group" style="margin-bottom: 16px; text-align: left;">
-            <label for="login-senha">Senha</label>
-            <input type="password" id="login-senha" placeholder="******" required>
-          </div>
-
-          <button type="submit" class="btn btn-primary" style="width: 100%;">Entrar</button>
-        </form>
-      </div>
-    </div>
-
   </main>
 
-  <script type="module" src="script.js"></script>
+  <!-- LÓGICA INTEGRADOR FIREBASE (MÓDULO ES6) -->
+  <script type="module">
+    import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where, serverTimestamp, onSnapshot 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { 
+      getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    // Configuração do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXGqn85J6RDkpNCr-_z31MM4LPhROg6zI",
+      authDomain: "projetotransportadora-828a3.firebaseapp.com",
+      projectId: "projetotransportadora-828a3",
+      storageBucket: "projetotransportadora-828a3.firebasestorage.app",
+      messagingSenderId: "845742289661",
+      appId: "1:845742289661:web:8a834f453215330560c494"
+    };
+
+    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const COLECAO_ATENDIMENTOS = "atendimentos";
+
+    let atendimentoAtualId = null;
+    let html5QrScanner = null;
+    let meuGrafico = null;
+    let usuarioLogado = null;
+    let unsubscribeFila = null;
+
+    // Máscaras e Utilitários
+    function aplicarCapitalizacao(texto) {
+      return texto.toLowerCase().split(' ').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+    }
+
+    function aplicarMascaraCPF(valor) {
+      return valor.replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2').substring(0, 14);
+    }
+
+    document.addEventListener('input', (e) => {
+      if (e.target.classList.contains('input-capitalizar')) {
+        const pos = e.target.selectionStart;
+        e.target.value = aplicarCapitalizacao(e.target.value);
+        e.target.setSelectionRange(pos, pos);
+      }
+      if (e.target.classList.contains('input-cpf')) {
+        e.target.value = aplicarMascaraCPF(e.target.value);
+      }
+    });
+
+    function formatDateTime(timestamp) {
+      if (!timestamp) return "--/--/---- --:--";
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+    }
+
+    function formatTimeOnly(timestamp) {
+      if (!timestamp) return "--:--";
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+    }
+
+    function gerarAtendimentoId() {
+      const d = new Date();
+      const dataFormatada = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+      const aleatorio = String(Math.floor(Math.random() * 90000) + 10000);
+      return `ATD-${dataFormatada}-${aleatorio}`;
+    }
+
+    // Navegação SPA
+    window.navegarPara = function(idAba) {
+      document.querySelectorAll('.aba-conteudo').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+
+      const abaAlvo = document.getElementById(idAba);
+      if (abaAlvo) abaAlvo.classList.remove('hidden');
+
+      const linkAtivo = Array.from(document.querySelectorAll('.nav-link')).find(a => a.getAttribute('onclick')?.includes(idAba));
+      if (linkAtivo) linkAtivo.classList.add('active');
+
+      window.pararCamera();
+
+      if (idAba === 'aba-docas') {
+        iniciarEscutaFilaETempoReal();
+      } else if (idAba === 'aba-admin') {
+        carregarHistoricoAtendimentos();
+      }
+    };
+
+    // Autenticação
+    onAuthStateChanged(auth, (user) => {
+      usuarioLogado = user;
+      if (!user) {
+        document.getElementById('nav-menu').style.display = 'none';
+        window.navegarPara('aba-login');
+      } else {
+        document.getElementById('nav-menu').style.display = 'flex';
+        if (!document.getElementById('aba-login').classList.contains('hidden')) {
+          window.navegarPara('aba-entrada');
+        }
+      }
+    });
+
+    window.fazerLogin = function(email, senha) {
+      signInWithEmailAndPassword(auth, email, senha)
+        .then(() => window.navegarPara('aba-entrada'))
+        .catch((erro) => alert("Falha na autenticação: " + erro.message));
+    };
+
+    document.getElementById('btn-logout')?.addEventListener('click', () => {
+      signOut(auth).then(() => window.navegarPara('aba-login'));
+    });
+
+    // 1. Entrada de Veículos
+    window.salvarEntrada = async function() {
+      const placa = document.getElementById('placa-veiculo')?.value.toUpperCase().trim();
+      const tipoVeiculo = document.getElementById('tipo-veiculo')?.value;
+      const motorista = document.getElementById('nome-motorista')?.value.trim();
+      const documentoMotorista = document.getElementById('cpf-motorista')?.value.trim();
+      const ajudante = document.getElementById('nome-ajudante')?.value.trim();
+      const documentoAjudante = document.getElementById('cpf-ajudante')?.value.trim();
+      const telefone = document.getElementById('telefone-motorista')?.value.trim();
+      const tipoOperacao = document.getElementById('tipo-operacao')?.value;
+      const numeroCarga = document.getElementById('numero-carga')?.value.trim();
+      const transportadora = document.getElementById('transportadora')?.value.trim();
+      const cliente = document.getElementById('cliente')?.value.trim();
+      const observacao = document.getElementById('observacao')?.value.trim();
+
+      if (!placa || !tipoVeiculo || !motorista || !documentoMotorista || !telefone || !numeroCarga || !transportadora || !cliente) {
+        alert("Preencha todos os campos obrigatórios marcados com *.");
+        return;
+      }
+
+      const idPersonalizado = gerarAtendimentoId();
+      const agora = new Date();
+
+      const dadosAtendimento = {
+        atendimentoId: idPersonalizado,
+        placa, tipoVeiculo, motorista, documentoMotorista, 
+        ajudante: ajudante || "", documentoAjudante: documentoAjudante || "",
+        telefone, transportadora, tipoOperacao, numeroCarga, cliente,
+        observacao: observacao || "",
+        dataCadastro: agora.toISOString().slice(0, 10),
+        horarioCadastro: formatTimeOnly(agora),
+        horarioCheckin: null, horarioChamada: null, horarioChegadaDoca: null,
+        horarioInicioOperacao: null, horarioFinalizacao: null, horarioSaida: null,
+        doca: null, status: "CADASTRADO", usuarioChamada: null,
+        criadoEm: serverTimestamp(), atualizadoEm: serverTimestamp()
+      };
+
+      try {
+        await addDoc(collection(db, COLECAO_ATENDIMENTOS), dadosAtendimento);
+
+        document.getElementById('ticket-id').innerText = idPersonalizado;
+        document.getElementById('ticket-placa').innerText = placa;
+        document.getElementById('ticket-motorista').innerText = motorista;
+        document.getElementById('ticket-ajudante').innerText = ajudante ? `${ajudante} (${documentoAjudante})` : 'Nenhum';
+        document.getElementById('ticket-operacao').innerText = tipoOperacao;
+        document.getElementById('ticket-carga').innerText = numeroCarga;
+        document.getElementById('ticket-data').innerText = `${dadosAtendimento.dataCadastro} ${dadosAtendimento.horarioCadastro}`;
+
+        const qrPayload = `https://projetotransportadora-828a3.web.app/checkin?id=${idPersonalizado}`;
+        const qrContainer = document.getElementById('qrcode-container');
+        if (qrContainer) {
+          qrContainer.innerHTML = "";
+          if (typeof QRCode !== "undefined") new QRCode(qrContainer, { text: qrPayload, width: 160, height: 160 });
+        }
+
+        document.getElementById('area-ticket')?.classList.remove('hidden');
+        document.getElementById('form-entrada')?.reset();
+      } catch (erro) {
+        alert("Erro ao gravar cadastro no Firebase.");
+      }
+    };
+
+    window.imprimirTicketEntrada = function() {
+      const ticketElement = document.getElementById('area-ticket');
+      if (!ticketElement) return;
+
+      const win = window.open('', '_blank', 'width=400,height=600');
+      win.document.write(`
+        <html><head><title>Ticket - Transportadora Paulão</title><style>body { font-family: monospace; text-align: center; padding: 20px; }</style></head>
+        <body>${ticketElement.innerHTML}<script>window.onload = function() { window.print(); window.close(); };<\/script></body></html>
+      `);
+      win.document.close();
+    };
+
+    // 2. Check-in do Motorista
+    window.habilitarScannerCheckin = function() {
+      window.iniciarCamera("reader-checkin", async (qrMessage) => {
+        await window.pararCamera();
+        processarCheckinQRCode(qrMessage);
+      });
+    };
+
+    async function processarCheckinQRCode(qrValue) {
+      const alertBox = document.getElementById("checkin-alert");
+      try {
+        let atendimentoId = qrValue.includes("id=") ? qrValue.split("id=")[1] : qrValue;
+        const q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", atendimentoId));
+        const snap = await getDocs(q);
+
+        if (snap.empty) throw new Error("Atendimento não encontrado no sistema.");
+
+        const docSnap = snap.docs[0];
+        const data = docSnap.data();
+
+        if (data.status !== "CADASTRADO") throw new Error(`Este atendimento já está no status: ${data.status}`);
+
+        await updateDoc(doc(db, COLECAO_ATENDIMENTOS, docSnap.id), {
+          status: "AGUARDANDO_CHAMADA",
+          horarioCheckin: serverTimestamp(),
+          atualizadoEm: serverTimestamp()
+        });
+
+        document.getElementById('checkin-resumo-id').innerText = data.atendimentoId;
+        document.getElementById('checkin-resumo-placa').innerText = data.placa;
+        document.getElementById('checkin-resumo-motorista').innerText = data.motorista;
+
+        document.getElementById('card-confirmacao-checkin')?.classList.remove('hidden');
+        if (alertBox) alertBox.classList.add('hidden');
+      } catch (err) {
+        if (alertBox) {
+          alertBox.textContent = err.message;
+          alertBox.className = "alert alert-danger";
+          alertBox.classList.remove("hidden");
+        }
+      }
+    }
+
+    // 3. Painel do Líder e Docas
+    function iniciarEscutaFilaETempoReal() {
+      if (unsubscribeFila) unsubscribeFila();
+
+      const q = query(collection(db, COLECAO_ATENDIMENTOS));
+      unsubscribeFila = onSnapshot(q, (snapshot) => {
+        const todosAtendimentos = [];
+        snapshot.forEach(docSnap => todosAtendimentos.push({ idFirestore: docSnap.id, ...docSnap.data() }));
+
+        renderizarGridDocas(todosAtendimentos);
+        renderizarFilaEspera(todosAtendimentos);
+      });
+    }
+
+    function renderizarGridDocas(lista) {
+      const gridContainer = document.getElementById('container-docas-grid');
+      if (!gridContainer) return;
+
+      gridContainer.innerHTML = "";
+      const docas = ["Doca 01", "Doca 02", "Doca 03", "Doca 04", "Doca 05", "Doca 06", "Doca 07", "Doca 08", "Doca 09", "Doca 10"];
+
+      docas.forEach(nomeDoca => {
+        const ocupante = lista.find(item => item.doca === nomeDoca && ["CHAMADO", "A_CAMINHO_DA_DOCA", "NA_DOCA", "EM_OPERACAO"].includes(item.status));
+
+        const card = document.createElement('div');
+        card.className = `doca-card ${ocupante ? 'ocupada' : 'livre'}`;
+
+        if (!ocupante) {
+          card.innerHTML = `
+            <div class="doca-header"><strong>${nomeDoca}</strong><span class="doca-status-badge badge-livre">LIVRE</span></div>
+            <p class="doca-info-vazio">Nenhum veículo alocado</p>
+          `;
+        } else {
+          card.innerHTML = `
+            <div class="doca-header"><strong>${nomeDoca}</strong><span class="doca-status-badge badge-ocupada">${ocupante.status}</span></div>
+            <div class="doca-detalhes">
+              <div><strong>Placa:</strong> ${ocupante.placa}</div>
+              <div><strong>Motorista:</strong> ${ocupante.motorista}</div>
+              <div><strong>Operação:</strong> ${ocupante.tipoOperacao}</div>
+            </div>
+            <div class="doca-acoes">
+              ${ocupante.status === 'NA_DOCA' ? `<button class="btn btn-primary btn-sm" onclick="iniciarOperacaoDoca('${ocupante.idFirestore}')">Iniciar Operação</button>` : ''}
+              ${ocupante.status === 'EM_OPERACAO' ? `<button class="btn btn-success btn-sm" onclick="finalizarOperacaoDoca('${ocupante.idFirestore}')">Finalizar Doca</button>` : ''}
+            </div>
+          `;
+        }
+        gridContainer.appendChild(card);
+      });
+    }
+
+    function renderizarFilaEspera(lista) {
+      const tbody = document.getElementById('tbody-fila-espera');
+      if (!tbody) return;
+
+      tbody.innerHTML = "";
+      const fila = lista.filter(item => item.status === "AGUARDANDO_CHAMADA");
+
+      if (fila.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Nenhum veículo aguardando no pátio.</td></tr>`;
+        return;
+      }
+
+      fila.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>#${index + 1}</strong></td>
+          <td>${formatDateTime(item.horarioCheckin)}</td>
+          <td>${item.atendimentoId}</td>
+          <td><strong>${item.placa}</strong></td>
+          <td>${item.motorista}</td>
+          <td>${item.tipoOperacao}</td>
+          <td>${item.transportadora}</td>
+          <td><button class="btn btn-primary btn-sm" onclick="abrirModalChamar('${item.idFirestore}', '${item.placa}')">📢 CHAMAR VEÍCULO</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    window.abrirModalChamar = function(idFirestore, placa) {
+      atendimentoAtualId = idFirestore;
+      document.getElementById('modal-placa').innerText = placa;
+      document.getElementById('modal-chamar-doca').classList.remove('hidden');
+    };
+
+    window.fecharModalChamar = function() {
+      atendimentoAtualId = null;
+      document.getElementById('modal-chamar-doca').classList.add('hidden');
+    };
+
+    window.confirmarChamadaDoca = async function() {
+      if (!atendimentoAtualId) return;
+      const docaSelecionada = document.getElementById('select-doca-chamar').value;
+
+      try {
+        await updateDoc(doc(db, COLECAO_ATENDIMENTOS, atendimentoAtualId), {
+          doca: docaSelecionada,
+          status: "CHAMADO",
+          usuarioChamada: usuarioLogado?.email || "Líder de Pátio",
+          horarioChamada: serverTimestamp(),
+          atualizadoEm: serverTimestamp()
+        });
+
+        alert(`Veículo chamado para a ${docaSelecionada}!`);
+        fecharModalChamar();
+      } catch (err) {
+        alert("Erro ao realizar chamada para doca.");
+      }
+    };
+
+    window.iniciarOperacaoDoca = async function(idFirestore) {
+      try {
+        await updateDoc(doc(db, COLECAO_ATENDIMENTOS, idFirestore), {
+          status: "EM_OPERACAO",
+          horarioInicioOperacao: serverTimestamp(),
+          atualizadoEm: serverTimestamp()
+        });
+      } catch (err) { alert("Erro ao iniciar operação."); }
+    };
+
+    window.finalizarOperacaoDoca = async function(idFirestore) {
+      try {
+        await updateDoc(doc(db, COLECAO_ATENDIMENTOS, idFirestore), {
+          status: "FINALIZADO",
+          horarioFinalizacao: serverTimestamp(),
+          atualizadoEm: serverTimestamp()
+        });
+      } catch (err) { alert("Erro ao finalizar doca."); }
+    };
+
+    window.habilitarScannerDoca = function() {
+      window.iniciarCamera("reader-doca", async (qrMessage) => {
+        await window.pararCamera();
+        let atendimentoId = qrMessage.includes("id=") ? qrMessage.split("id=")[1] : qrMessage;
+
+        const q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", atendimentoId));
+        const snap = await getDocs(q);
+
+        if (snap.empty) return alert("Atendimento não encontrado.");
+        const docSnap = snap.docs[0];
+        const data = docSnap.data();
+
+        if (data.status === "CHAMADO" || data.status === "A_CAMINHO_DA_DOCA") {
+          await updateDoc(doc(db, COLECAO_ATENDIMENTOS, docSnap.id), {
+            status: "NA_DOCA",
+            horarioChegadaDoca: serverTimestamp(),
+            atualizadoEm: serverTimestamp()
+          });
+          alert(`Veículo confirmado na ${data.doca}! Status alterado para NA_DOCA.`);
+        } else if (data.status === "NA_DOCA") {
+          window.iniciarOperacaoDoca(docSnap.id);
+        } else if (data.status === "EM_OPERACAO") {
+          window.finalizarOperacaoDoca(docSnap.id);
+        }
+      });
+    };
+
+    // 4. Balança e Saída
+    window.buscarAtendimentoBalanca = async function() {
+      const termo = document.getElementById('input-buscar-balanca')?.value.trim();
+      if (!termo) return alert("Digite o ID ou Placa.");
+
+      try {
+        let q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", termo));
+        let snap = await getDocs(q);
+
+        if (snap.empty) {
+          q = query(collection(db, COLECAO_ATENDIMENTOS), where("placa", "==", termo.toUpperCase()));
+          snap = await getDocs(q);
+        }
+
+        if (snap.empty) return alert("Nenhum atendimento localizado.");
+
+        const docSnap = snap.docs[0];
+        const data = docSnap.data();
+
+        atendimentoAtualId = docSnap.id;
+
+        document.getElementById('bal-id').innerText = data.atendimentoId;
+        document.getElementById('bal-placa').innerText = data.placa;
+        document.getElementById('bal-motorista').innerText = data.motorista;
+        document.getElementById('bal-ajudante').innerText = data.ajudante ? `${data.ajudante} (${data.documentoAjudante})` : 'Nenhum';
+        document.getElementById('bal-operacao').innerText = data.tipoOperacao;
+        document.getElementById('bal-doca').innerText = data.doca || 'N/A';
+        document.getElementById('bal-status').innerText = data.status;
+
+        document.getElementById('secao-liberacao-saida')?.classList.remove('hidden');
+      } catch (err) { alert("Erro na busca."); }
+    };
+
+    window.confirmarSaidaBalança = async function() {
+      if (!atendimentoAtualId) return;
+
+      try {
+        await updateDoc(doc(db, COLECAO_ATENDIMENTOS, atendimentoAtualId), {
+          status: "SAIDA_LIBERADA",
+          horarioSaida: serverTimestamp(),
+          atualizadoEm: serverTimestamp()
+        });
+
+        alert("Saída liberada com sucesso!");
+        document.getElementById('secao-liberacao-saida')?.classList.add('hidden');
+        document.getElementById('form-buscar-balanca')?.reset();
+        atendimentoAtualId = null;
+      } catch (err) { alert("Erro ao gravar saída."); }
+    };
+
+    // 4.1. Consulta Pública de Status
+    window.consultarStatusPublico = async function() {
+      const termo = document.getElementById('input-consulta-termo')?.value.trim();
+      if (!termo) return alert("Informe o ID ou a Placa.");
+
+      try {
+        let q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", termo));
+        let snap = await getDocs(q);
+
+        if (snap.empty) {
+          q = query(collection(db, COLECAO_ATENDIMENTOS), where("placa", "==", termo.toUpperCase()));
+          snap = await getDocs(q);
+        }
+
+        if (snap.empty) return alert("Nenhum registro encontrado.");
+
+        const data = snap.docs[0].data();
+
+        document.getElementById('cons-id').innerText = data.atendimentoId;
+        document.getElementById('cons-placa').innerText = data.placa;
+        document.getElementById('cons-motorista').innerText = data.motorista;
+        document.getElementById('cons-ajudante').innerText = data.ajudante ? `${data.ajudante} (${data.documentoAjudante})` : 'Nenhum';
+        document.getElementById('cons-operacao').innerText = data.tipoOperacao;
+        document.getElementById('cons-doca').innerText = data.doca || 'Pátio / Não Alocado';
+        document.getElementById('cons-status').innerText = data.status;
+        document.getElementById('cons-data').innerText = formatDateTime(data.atualizadoEm || data.criadoEm);
+
+        document.getElementById('secao-resultado-consulta')?.classList.remove('hidden');
+      } catch (err) { alert("Erro ao consultar status."); }
+    };
+
+    // 5. Admin e Dashboard
+    window.carregarHistoricoAtendimentos = async function() {
+      try {
+        const snap = await getDocs(collection(db, COLECAO_ATENDIMENTOS));
+        const lista = [];
+        snap.forEach(d => lista.push({ idFirestore: d.id, ...d.data() }));
+
+        renderizarDashboardEAdmin(lista);
+      } catch (err) { console.error(err); }
+    };
+
+    function renderizarDashboardEAdmin(lista) {
+      let espera = 0, chamados = 0, doca = 0, finalizados = 0;
+      let contagemOperacoes = {};
+
+      const tbody = document.getElementById('tbody-historico');
+      if (tbody) tbody.innerHTML = "";
+
+      lista.forEach(item => {
+        if (item.status === "AGUARDANDO_CHAMADA") espera++;
+        if (["CHAMADO", "A_CAMINHO_DA_DOCA"].includes(item.status)) chamados++;
+        if (["NA_DOCA", "EM_OPERACAO"].includes(item.status)) doca++;
+        if (["FINALIZADO", "SAIDA_LIBERADA"].includes(item.status)) finalizados++;
+
+        contagemOperacoes[item.tipoOperacao] = (contagemOperacoes[item.tipoOperacao] || 0) + 1;
+
+        if (tbody) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><strong>${item.atendimentoId}</strong></td>
+            <td>${item.placa}</td>
+            <td>${item.motorista}</td>
+            <td>${item.tipoOperacao}</td>
+            <td>${item.doca || '-'}</td>
+            <td>${item.dataCadastro} ${item.horarioCadastro}</td>
+            <td><span class="badge-status status-${item.status}">${item.status}</span></td>
+            <td style="text-align: center;"><button class="btn btn-outline btn-sm" onclick="imprimirAuditoriaAtendimento('${item.idFirestore}')">🖨️ Detalhes</button></td>
+          `;
+          tbody.appendChild(tr);
+        }
+      });
+
+      document.getElementById('stat-espera').innerText = espera;
+      document.getElementById('stat-chamados').innerText = chamados;
+      document.getElementById('stat-doca').innerText = doca;
+      document.getElementById('stat-finalizados').innerText = finalizados;
+
+      renderizarGraficoAdmin(contagemOperacoes);
+    }
+
+    window.imprimirAuditoriaAtendimento = async function(idFirestore) {
+      try {
+        const docRef = doc(db, COLECAO_ATENDIMENTOS, idFirestore);
+        const docSnap = await getDoc(docRef);
+
+        if (!docSnap.exists()) {
+          alert("Atendimento não localizado.");
+          return;
+        }
+
+        const data = docSnap.data();
+        const win = window.open('', '_blank', 'width=600,height=700');
+        win.document.write(`
+          <html>
+            <head>
+              <title>Auditoria - ${data.atendimentoId}</title>
+              <style>
+                body { font-family: Arial, sans-serif; padding: 20px; color: #2c3e50; }
+                h2 { color: #0a3d62; border-bottom: 2px solid #0a3d62; padding-bottom: 8px; }
+                .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px #eee dashed; }
+                .label { font-weight: bold; }
+              </style>
+            </head>
+            <body>
+              <h2>TRANSPORTADORA PAULÃO - RELATÓRIO DE AUDITORIA</h2>
+              <div class="row"><span class="label">ID Atendimento:</span><span>${data.atendimentoId}</span></div>
+              <div class="row"><span class="label">Placa:</span><span>${data.placa}</span></div>
+              <div class="row"><span class="label">Motorista:</span><span>${data.motorista} (${data.documentoMotorista})</span></div>
+              <div class="row"><span class="label">Ajudante:</span><span>${data.ajudante ? `${data.ajudante} (${data.documentoAjudante})` : 'Nenhum'}</span></div>
+              <div class="row"><span class="label">Telefone:</span><span>${data.telefone}</span></div>
+              <div class="row"><span class="label">Tipo Veículo:</span><span>${data.tipoVeiculo}</span></div>
+              <div class="row"><span class="label">Operação:</span><span>${data.tipoOperacao}</span></div>
+              <div class="row"><span class="label">Nº Carga / NF:</span><span>${data.numeroCarga}</span></div>
+              <div class="row"><span class="label">Transportadora:</span><span>${data.transportadora}</span></div>
+              <div class="row"><span class="label">Cliente:</span><span>${data.cliente}</span></div>
+              <div class="row"><span class="label">Doca Alocada:</span><span>${data.doca || 'N/A'}</span></div>
+              <div class="row"><span class="label">Status Atual:</span><span>${data.status}</span></div>
+              <div class="row"><span class="label">Cadastro:</span><span>${data.dataCadastro} às ${data.horarioCadastro}</span></div>
+              <div class="row"><span class="label">Horário Check-in:</span><span>${formatDateTime(data.horarioCheckin)}</span></div>
+              <div class="row"><span class="label">Horário Chamada:</span><span>${formatDateTime(data.horarioChamada)}</span></div>
+              <div class="row"><span class="label">Horário Entrada Doca:</span><span>${formatDateTime(data.horarioChegadaDoca)}</span></div>
+              <div class="row"><span class="label">Início Operação:</span><span>${formatDateTime(data.horarioInicioOperacao)}</span></div>
+              <div class="row"><span class="label">Fim Operação:</span><span>${formatDateTime(data.horarioFinalizacao)}</span></div>
+              <div class="row"><span class="label">Horário Saída:</span><span>${formatDateTime(data.horarioSaida)}</span></div>
+              <div class="row"><span class="label">Observações:</span><span>${data.observacao || 'Nenhuma'}</span></div>
+              <script>window.onload = function() { window.print(); };<\/script>
+            </body>
+          </html>
+        `);
+        win.document.close();
+      } catch (err) {
+        alert("Erro ao gerar relatório de detalhes: " + err.message);
+      }
+    };
+
+    function renderizarGraficoAdmin(dados) {
+      const ctx = document.getElementById('graficoOperacoes')?.getContext('2d');
+      if (!ctx) return;
+
+      if (meuGrafico) meuGrafico.destroy();
+
+      meuGrafico = new Chart(ctx, {
+        type: document.getElementById('tipo-grafico-select')?.value || 'bar',
+        data: {
+          labels: Object.keys(dados),
+          datasets: [{ label: 'Quantidade por Operação', data: Object.values(dados), backgroundColor: '#0a3d62' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    // Leitor de Câmera
+    window.iniciarCamera = async function(elementId, callbackSucesso) {
+      window.pararCamera();
+      const element = document.getElementById(elementId);
+      if (element) element.classList.remove("hidden");
+
+      try {
+        html5QrScanner = new Html5Qrcode(elementId);
+        await html5QrScanner.start(
+          { facingMode: { ideal: "environment" } },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          callbackSucesso,
+          () => {}
+        );
+      } catch (err) { alert("Erro ao iniciar câmera: " + err.message); }
+    };
+
+    window.pararCamera = async function() {
+      if (html5QrScanner) {
+        try { await html5QrScanner.stop(); } catch (e) {}
+        html5QrScanner.clear();
+        html5QrScanner = null;
+      }
+    };
+  </script>
 </body>
 </html>
