@@ -6,9 +6,7 @@ import {
   getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// ==========================================================================
 // 1. CONFIGURAÇÃO DO FIREBASE
-// ==========================================================================
 const firebaseConfig = {
   apiKey: "AIzaSyBXGqn85J6RDkpNCr-_z31MM4LPhROg6zI",
   authDomain: "projetotransportadora-828a3.firebaseapp.com",
@@ -24,7 +22,7 @@ const auth = getAuth(app);
 
 const COLECAO_ATENDIMENTOS = "atendimentos";
 
-// Variáveis Globais de Controle de Estado
+// Variáveis Globais de Estado
 let atendimentoAtualId = null;
 let html5QrScanner = null;
 let meuGrafico = null;
@@ -33,20 +31,17 @@ let unsubscribeFila = null;
 let historicoCompleto = [];
 let historicoExibido = [];
 
-// MAPEAMENTO DE CORES EXCLUSIVAS POR TIPO DE OPERAÇÃO
 const OPERACAO_CORES = {
-  'CARREGAMENTO': '#0a3d62',   // Azul Escuro
-  'DESCARGA': '#e67e22',       // Laranja
-  'COLETA': '#27ae60',        // Verde
-  'ENTREGA': '#2980b9',       // Azul Claro
-  'TRANSFERENCIA': '#8e44ad',  // Roxo
-  'DEVOLUCAO': '#c0392b',     // Vermelho
-  'OUTRO': '#7f8c8d'          // Cinza
+  'CARREGAMENTO': '#0a3d62',
+  'DESCARGA': '#e67e22',
+  'COLETA': '#27ae60',
+  'ENTREGA': '#2980b9',
+  'TRANSFERENCIA': '#8e44ad',
+  'DEVOLUCAO': '#c0392b',
+  'OUTRO': '#7f8c8d'
 };
 
-// ==========================================================================
-// 2. MÁSCARAS E MÉTODOS UTILITÁRIOS
-// ==========================================================================
+// 2. MÁSCARAS E UTILITÁRIOS
 function aplicarCapitalizacao(texto) {
   if (!texto) return '';
   return texto.toLowerCase().split(' ').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
@@ -96,9 +91,7 @@ function extrairCodigoQRCode(qrText) {
   return qrText.trim();
 }
 
-// ==========================================================================
 // 3. NAVEGAÇÃO SPA
-// ==========================================================================
 window.navegarPara = function(idAba) {
   document.querySelectorAll('.aba-conteudo').forEach(el => el.classList.add('hidden'));
   document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
@@ -118,9 +111,7 @@ window.navegarPara = function(idAba) {
   }
 };
 
-// ==========================================================================
-// 4. AUTENTICAÇÃO FIREBASE
-// ==========================================================================
+// 4. AUTENTICAÇÃO
 onAuthStateChanged(auth, (user) => {
   usuarioLogado = user;
   const navMenu = document.getElementById('nav-menu');
@@ -129,7 +120,7 @@ onAuthStateChanged(auth, (user) => {
     window.navegarPara('aba-login');
   } else {
     if (navMenu) navMenu.style.display = 'flex';
-    if (!document.getElementById('aba-login').classList.contains('hidden')) {
+    if (!document.getElementById('aba-login')?.classList.contains('hidden')) {
       window.navegarPara('aba-entrada');
     }
   }
@@ -145,10 +136,9 @@ document.getElementById('btn-logout')?.addEventListener('click', () => {
   signOut(auth).then(() => window.navegarPara('aba-login'));
 });
 
-// ==========================================================================
 // 5. ENTRADA DE VEÍCULOS & TICKET
-// ==========================================================================
 window.salvarEntrada = async function() {
+  const docIdEdicao = document.getElementById('edit-doc-id')?.value;
   const placa = document.getElementById('placa-veiculo')?.value.toUpperCase().trim();
   const tipoVeiculo = document.getElementById('tipo-veiculo')?.value;
   const motorista = document.getElementById('nome-motorista')?.value.trim();
@@ -168,27 +158,47 @@ window.salvarEntrada = async function() {
     return;
   }
 
-  const idPersonalizado = gerarAtendimentoId();
-  const agora = new Date();
-
-  const dadosAtendimento = {
-    atendimentoId: idPersonalizado,
-    placa, tipoVeiculo, motorista, documentoMotorista, 
-    ajudante: ajudante || "", documentoAjudante: documentoAjudante || "",
-    telefone, transportadora, tipoOperacao, 
-    numeroOp,
-    numeroCarga, cliente,
-    observacao: observacao || "",
-    dataCadastro: agora.toISOString().slice(0, 10),
-    horarioCadastro: formatTimeOnly(agora),
-    horarioCheckin: null, horarioChamada: null, horarioChegadaDoca: null,
-    horarioInicioOperacao: null, horarioFinalizacao: null, horarioSaida: null,
-    doca: null, status: "CADASTRADO", usuarioChamada: null,
-    criadoEm: serverTimestamp(), atualizadoEm: serverTimestamp()
-  };
-
   try {
-    await addDoc(collection(db, COLECAO_ATENDIMENTOS), dadosAtendimento);
+    let idPersonalizado = "";
+    const agora = new Date();
+    
+    if (docIdEdicao) {
+      const docRef = doc(db, COLECAO_ATENDIMENTOS, docIdEdicao);
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) throw new Error("Registro de atendimento não localizado.");
+
+      idPersonalizado = docSnap.data().atendimentoId;
+
+      await updateDoc(docRef, {
+        placa, tipoVeiculo, motorista, documentoMotorista,
+        ajudante: ajudante || "", documentoAjudante: documentoAjudante || "",
+        telefone, transportadora, tipoOperacao,
+        numeroOp, numeroCarga, cliente,
+        observacao: observacao || "",
+        atualizadoEm: serverTimestamp()
+      });
+
+      alert("Cadastro revisado e atualizado com sucesso!");
+    } else {
+      idPersonalizado = gerarAtendimentoId();
+
+      const dadosAtendimento = {
+        atendimentoId: idPersonalizado,
+        placa, tipoVeiculo, motorista, documentoMotorista, 
+        ajudante: ajudante || "", documentoAjudante: documentoAjudante || "",
+        telefone, transportadora, tipoOperacao, 
+        numeroOp, numeroCarga, cliente,
+        observacao: observacao || "",
+        dataCadastro: agora.toISOString().slice(0, 10),
+        horarioCadastro: formatTimeOnly(agora),
+        horarioCheckin: null, horarioChamada: null, horarioChegadaDoca: null,
+        horarioInicioOperacao: null, horarioFinalizacao: null, horarioSaida: null,
+        doca: null, status: "CADASTRADO", usuarioChamada: null,
+        criadoEm: serverTimestamp(), atualizadoEm: serverTimestamp()
+      };
+
+      await addDoc(collection(db, COLECAO_ATENDIMENTOS), dadosAtendimento);
+    }
 
     document.getElementById('ticket-id').innerText = idPersonalizado;
     document.getElementById('ticket-op').innerText = numeroOp;
@@ -197,7 +207,7 @@ window.salvarEntrada = async function() {
     document.getElementById('ticket-ajudante').innerText = ajudante ? `${ajudante} (${documentoAjudante})` : 'Nenhum';
     document.getElementById('ticket-operacao').innerText = tipoOperacao;
     document.getElementById('ticket-carga').innerText = numeroCarga;
-    document.getElementById('ticket-data').innerText = `${dadosAtendimento.dataCadastro} ${dadosAtendimento.horarioCadastro}`;
+    document.getElementById('ticket-data').innerText = `${agora.toLocaleDateString('pt-BR')} ${formatTimeOnly(agora)}`;
 
     const qrPayload = `https://projetotransportadora-828a3.web.app/?id=${idPersonalizado}&op=${encodeURIComponent(numeroOp)}&placa=${encodeURIComponent(placa)}`;
     const qrContainer = document.getElementById('qrcode-container');
@@ -207,11 +217,74 @@ window.salvarEntrada = async function() {
     }
 
     document.getElementById('area-ticket')?.classList.remove('hidden');
-    document.getElementById('form-entrada')?.reset();
+    window.cancelarEdicaoCadastro();
   } catch (erro) {
     console.error(erro);
-    alert("Erro ao gravar cadastro no banco de dados.");
+    alert("Erro ao salvar cadastro: " + erro.message);
   }
+};
+
+window.buscarCadastroParaEdicao = async function() {
+  const termo = document.getElementById('input-busca-edicao')?.value.trim();
+  if (!termo) return alert("Informe a Placa ou o ID do Atendimento.");
+
+  try {
+    let q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", termo));
+    let snap = await getDocs(q);
+
+    if (snap.empty) {
+      q = query(collection(db, COLECAO_ATENDIMENTOS), where("placa", "==", termo.toUpperCase()));
+      snap = await getDocs(q);
+    }
+
+    if (snap.empty) return alert("Nenhum cadastro encontrado.");
+
+    const docSnap = snap.docs[snap.docs.length - 1];
+    carregarDadosFormularioEdicao(docSnap.id, docSnap.data());
+  } catch (err) {
+    alert("Erro ao buscar cadastro para revisão.");
+  }
+};
+
+window.revisarTicketAtual = function() {
+  const ticketId = document.getElementById('ticket-id')?.innerText;
+  if (ticketId && ticketId !== '--') {
+    document.getElementById('input-busca-edicao').value = ticketId;
+    window.buscarCadastroParaEdicao();
+  }
+};
+
+function carregarDadosFormularioEdicao(docId, data) {
+  document.getElementById('edit-doc-id').value = docId;
+  document.getElementById('placa-veiculo').value = data.placa || '';
+  document.getElementById('tipo-veiculo').value = data.tipoVeiculo || '';
+  document.getElementById('nome-motorista').value = data.motorista || '';
+  document.getElementById('cpf-motorista').value = data.documentoMotorista || '';
+  document.getElementById('nome-ajudante').value = data.ajudante || '';
+  document.getElementById('cpf-ajudante').value = data.documentoAjudante || '';
+  document.getElementById('telefone-motorista').value = data.telefone || '';
+  document.getElementById('tipo-operacao').value = data.tipoOperacao || 'CARREGAMENTO';
+  document.getElementById('numero-op').value = data.numeroOp === 'N/A' ? '' : (data.numeroOp || '');
+  document.getElementById('numero-carga').value = data.numeroCarga || '';
+  document.getElementById('transportadora').value = data.transportadora || '';
+  document.getElementById('cliente').value = data.cliente || '';
+  document.getElementById('observacao').value = data.observacao || '';
+
+  document.getElementById('titulo-form-entrada').innerText = `Revisando Cadastro [${data.atendimentoId}]`;
+  document.getElementById('subtitulo-form-entrada').innerText = "Altere os dados necessários e clique em Salvar Alterações.";
+  document.getElementById('btn-submit-entrada').innerText = "💾 Salvar Alterações do Cadastro";
+  document.getElementById('btn-cancelar-edicao').classList.remove('hidden');
+
+  window.scrollTo({ top: document.getElementById('form-entrada').offsetTop - 80, behavior: 'smooth' });
+}
+
+window.cancelarEdicaoCadastro = function() {
+  document.getElementById('edit-doc-id').value = '';
+  document.getElementById('form-entrada')?.reset();
+  document.getElementById('titulo-form-entrada').innerText = "Registro de Entrada de Veículo";
+  document.getElementById('subtitulo-form-entrada').innerText = "Cadastre os dados da carga e do motorista para liberação ao pátio";
+  document.getElementById('btn-submit-entrada').innerText = "Registrar Entrada e Gerar Ticket";
+  document.getElementById('btn-cancelar-edicao').classList.add('hidden');
 };
 
 window.imprimirTicketEntrada = function() {
@@ -226,9 +299,7 @@ window.imprimirTicketEntrada = function() {
   win.document.close();
 };
 
-// ==========================================================================
-// 6. LEITOR DE QR CODE DA CÂMERA & PROCESSAMENTO
-// ==========================================================================
+// 6. CÂMERA & PROCESSAMENTO QR
 window.iniciarCamera = async function(elementId, callbackSucesso) {
   await window.pararCamera();
   const element = document.getElementById(elementId);
@@ -252,9 +323,9 @@ window.iniciarCamera = async function(elementId, callbackSucesso) {
 window.pararCamera = async function() {
   if (html5QrScanner) {
     try { 
-      await html5QrScanner.stop(); 
+      if (html5QrScanner.isScanning) await html5QrScanner.stop(); 
     } catch (e) {}
-    html5QrScanner.clear();
+    try { html5QrScanner.clear(); } catch (e) {}
     html5QrScanner = null;
   }
 };
@@ -273,7 +344,7 @@ async function processarCheckinQRCode(qrValue) {
     const q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", atendimentoId));
     const snap = await getDocs(q);
 
-    if (snap.empty) throw new Error(`Atendimento (${atendimentoId}) não foi encontrado.`);
+    if (snap.empty) throw new Error(`Atendimento (${atendimentoId}) não encontrado.`);
 
     const docSnap = snap.docs[0];
     const data = docSnap.data();
@@ -288,7 +359,6 @@ async function processarCheckinQRCode(qrValue) {
       });
     }
 
-    // Exibe os dados do atendimento na tela
     document.getElementById('checkin-resumo-id').innerText = data.atendimentoId;
     document.getElementById('checkin-resumo-placa').innerText = data.placa;
     document.getElementById('checkin-resumo-motorista').innerText = data.motorista;
@@ -324,22 +394,20 @@ window.habilitarScannerDoca = function() {
         horarioChegadaDoca: serverTimestamp(),
         atualizadoEm: serverTimestamp()
       });
-      alert(`Veículo ${data.placa} chegou e foi confirmado na ${data.doca}! Status alterado para NA_DOCA.`);
+      alert(`Veículo ${data.placa} chegou na ${data.doca}! Status: NA_DOCA.`);
     } else if (data.status === "NA_DOCA") {
       window.iniciarOperacaoDoca(docSnap.id);
-      alert(`Iniciada a operação de carregamento/descarga para a placa ${data.placa}.`);
+      alert(`Operação iniciada para a placa ${data.placa}.`);
     } else if (data.status === "EM_OPERACAO") {
       window.finalizarOperacaoDoca(docSnap.id);
-      alert(`Operação na doca finalizada para o veículo ${data.placa}. Encaminhado para a Balança.`);
+      alert(`Operação finalizada para ${data.placa}. Encaminhado à Balança.`);
     } else {
-      alert(`O veículo está com status "${data.status}". Nenhuma ação automática executada.`);
+      alert(`Status atual: "${data.status}". Nenhum processo pendente.`);
     }
   });
 };
 
-// ==========================================================================
-// 7. PAINEL DO LÍDER & DOCAS (TEMPO REAL)
-// ==========================================================================
+// 7. DOCAS & FILA EM TEMPO REAL
 function iniciarEscutaFilaETempoReal() {
   if (unsubscribeFila) unsubscribeFila();
 
@@ -380,8 +448,8 @@ function renderizarGridDocas(lista) {
           <div><strong>Operação:</strong> ${ocupante.tipoOperacao}</div>
         </div>
         <div class="doca-acoes">
-          ${ocupante.status === 'NA_DOCA' ? `<button class="btn btn-primary btn-sm" onclick="iniciarOperacaoDoca('${ocupante.idFirestore}')">Iniciar Operação</button>` : ''}
-          ${ocupante.status === 'EM_OPERACAO' ? `<button class="btn btn-success btn-sm" onclick="finalizarOperacaoDoca('${ocupante.idFirestore}')">Finalizar Doca</button>` : ''}
+          ${ocupante.status === 'NA_DOCA' ? `<button class="btn btn-primary btn-sm" onclick="window.iniciarOperacaoDoca('${ocupante.idFirestore}')">Iniciar Operação</button>` : ''}
+          ${ocupante.status === 'EM_OPERACAO' ? `<button class="btn btn-success btn-sm" onclick="window.finalizarOperacaoDoca('${ocupante.idFirestore}')">Finalizar Doca</button>` : ''}
         </div>
       `;
     }
@@ -389,13 +457,11 @@ function renderizarGridDocas(lista) {
   });
 }
 
-// RENDERIZAÇÃO CONFORME A IMAGEM
 function renderizarFilaEspera(lista) {
   const tbody = document.getElementById('tbody-fila-espera');
   if (!tbody) return;
 
   tbody.innerHTML = "";
-  // Filtra por 'AGUARDANDO_CHAMADA' e ordena por horário de checkin (FIFO)
   const fila = lista.filter(item => item.status === "AGUARDANDO_CHAMADA");
 
   if (fila.length === 0) {
@@ -414,7 +480,7 @@ function renderizarFilaEspera(lista) {
       <td>${item.tipoOperacao}</td>
       <td>${item.transportadora}</td>
       <td>
-        <button class="btn btn-sm btn-chamar-veiculo" onclick="abrirModalChamar('${item.idFirestore}', '${item.placa}')">
+        <button class="btn btn-sm btn-chamar-veiculo" onclick="window.abrirModalChamar('${item.idFirestore}', '${item.placa}')">
           📣 CHAMAR VEÍCULO
         </button>
       </td>
@@ -474,9 +540,7 @@ window.finalizarOperacaoDoca = async function(idFirestore) {
   } catch (err) { alert("Erro ao finalizar doca."); }
 };
 
-// ==========================================================================
 // 8. BALANÇA & SAÍDA
-// ==========================================================================
 window.buscarAtendimentoBalanca = async function() {
   const termo = document.getElementById('input-buscar-balanca')?.value.trim();
   if (!termo) return alert("Digite o ID ou Placa.");
@@ -526,9 +590,7 @@ window.confirmarSaidaBalança = async function() {
   } catch (err) { alert("Erro ao gravar saída."); }
 };
 
-// ==========================================================================
-// 9. CONSULTA DE STATUS PÚBLICA
-// ==========================================================================
+// 9. CONSULTA DE STATUS
 window.consultarStatusPublico = async function() {
   const termo = document.getElementById('input-consulta-termo')?.value.trim();
   if (!termo) return alert("Informe o ID ou a Placa.");
@@ -559,9 +621,7 @@ window.consultarStatusPublico = async function() {
   } catch (err) { alert("Erro ao consultar status."); }
 };
 
-// ==========================================================================
-// 10. PAINEL ADMIN, FILTROS, GRÁFICOS COLORIDOS E RELATÓRIOS
-// ==========================================================================
+// 10. PAINEL ADMIN & DASHBOARD
 window.carregarHistoricoAtendimentos = async function() {
   try {
     const snap = await getDocs(collection(db, COLECAO_ATENDIMENTOS));
@@ -649,7 +709,9 @@ function renderizarDashboardEAdmin(lista) {
         <td>${item.doca || '-'}</td>
         <td>${item.dataCadastro} ${item.horarioCadastro}</td>
         <td><span class="badge-status status-${item.status}">${item.status}</span></td>
-        <td style="text-align: center;"><button class="btn btn-outline btn-sm" onclick="imprimirAuditoriaAtendimento('${item.idFirestore}')">🖨️ Detalhes</button></td>
+        <td style="text-align: center; white-space: nowrap;">
+          <button class="btn btn-outline btn-sm" onclick="window.prepararEdicaoViaAdmin('${item.idFirestore}')">✏️ Editar</button>
+        </td>
       `;
       tbody.appendChild(tr);
     }
@@ -663,6 +725,14 @@ function renderizarDashboardEAdmin(lista) {
   renderizarGraficoAdmin(contagemOperacoes);
 }
 
+window.prepararEdicaoViaAdmin = function(docId) {
+  const item = historicoCompleto.find(i => i.idFirestore === docId);
+  if (!item) return;
+
+  window.navegarPara('aba-entrada');
+  carregarDadosFormularioEdicao(docId, item);
+};
+
 function renderizarGraficoAdmin(dados) {
   const ctx = document.getElementById('graficoOperacoes')?.getContext('2d');
   if (!ctx) return;
@@ -675,22 +745,19 @@ function renderizarGraficoAdmin(dados) {
 
   const cores = labels.map(label => OPERACAO_CORES[label.toUpperCase()] || '#7f8c8d');
 
-  const configDataset = {
-    label: 'Quantidade por Operação',
-    data: valores,
-    backgroundColor: tipoGrafico === 'line' ? 'rgba(10, 61, 98, 0.1)' : cores,
-    borderColor: tipoGrafico === 'line' ? '#0a3d62' : cores,
-    borderWidth: 2,
-    pointBackgroundColor: cores,
-    pointRadius: tipoGrafico === 'line' ? 6 : 0,
-    fill: tipoGrafico === 'line'
-  };
-
   meuGrafico = new Chart(ctx, {
     type: tipoGrafico,
     data: {
       labels: labels,
-      datasets: [configDataset]
+      datasets: [{
+        label: 'Quantidade por Operação',
+        data: valores,
+        backgroundColor: tipoGrafico === 'line' ? 'rgba(10, 61, 98, 0.1)' : cores,
+        borderColor: tipoGrafico === 'line' ? '#0a3d62' : cores,
+        borderWidth: 2,
+        pointBackgroundColor: cores,
+        fill: tipoGrafico === 'line'
+      }]
     },
     options: { 
       responsive: true, 
@@ -730,35 +797,24 @@ window.imprimirRelatorioAdmin = function(tipo) {
   win.document.write(`
     <html>
       <head>
-        <title>Relatório de Operações do Pátio - Transportadora Paulão</title>
+        <title>Relatório - Transportadora Paulão</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 20px; color: #2c3e50; }
-          h2 { color: #0a3d62; margin-bottom: 4px; }
-          .sub { color: #555; font-size: 0.9rem; margin-bottom: 16px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
           th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-          th { background-color: #f2f2f2; color: #0a3d62; }
+          th { background-color: #f2f2f2; }
         </style>
       </head>
       <body>
         <h2>TRANSPORTADORA PAULÃO - RELATÓRIO DE OPERAÇÕES</h2>
-        <div class="sub">Tipo: ${tipo === 'geral' ? 'Geral (Todas as Operações)' : 'Filtrado por Período / Busca'} | Total de Registros: ${listaParaImprimir.length} | Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+        <p>Total: ${listaParaImprimir.length} registros</p>
         <table>
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Placa</th>
-              <th>Motorista</th>
-              <th>Operação</th>
-              <th>OP</th>
-              <th>Doca</th>
-              <th>Data/Hora</th>
-              <th>Status</th>
+              <th>ID</th><th>Placa</th><th>Motorista</th><th>Operação</th><th>OP</th><th>Doca</th><th>Data/Hora</th><th>Status</th>
             </tr>
           </thead>
-          <tbody>
-            ${linhasHtml}
-          </tbody>
+          <tbody>${linhasHtml}</tbody>
         </table>
         <script>window.onload = function() { window.print(); };<\/script>
       </body>
@@ -766,72 +822,3 @@ window.imprimirRelatorioAdmin = function(tipo) {
   `);
   win.document.close();
 };
-
-window.imprimirAuditoriaAtendimento = async function(idFirestore) {
-  try {
-    const docRef = doc(db, COLECAO_ATENDIMENTOS, idFirestore);
-    const docSnap = await getDoc(docRef);
-
-    if (!docSnap.exists()) {
-      alert("Atendimento não localizado.");
-      return;
-    }
-
-    const data = docSnap.data();
-    const win = window.open('', '_blank', 'width=600,height=700');
-    win.document.write(`
-      <html>
-        <head>
-          <title>Auditoria - ${data.atendimentoId}</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 20px; color: #2c3e50; }
-            h2 { color: #0a3d62; border-bottom: 2px solid #0a3d62; padding-bottom: 8px; }
-            .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px #eee dashed; }
-            .label { font-weight: bold; }
-          </style>
-        </head>
-        <body>
-          <h2>TRANSPORTADORA PAULÃO - RELATÓRIO DE AUDITORIA</h2>
-          <div class="row"><span class="label">ID Atendimento:</span><span>${data.atendimentoId}</span></div>
-          <div class="row"><span class="label">Placa:</span><span>${data.placa}</span></div>
-          <div class="row"><span class="label">Motorista:</span><span>${data.motorista} (${data.documentoMotorista})</span></div>
-          <div class="row"><span class="label">Ajudante:</span><span>${data.ajudante ? `${data.ajudante} (${data.documentoAjudante})` : 'Nenhum'}</span></div>
-          <div class="row"><span class="label">Telefone:</span><span>${data.telefone}</span></div>
-          <div class="row"><span class="label">Tipo Veículo:</span><span>${data.tipoVeiculo}</span></div>
-          <div class="row"><span class="label">Operação:</span><span>${data.tipoOperacao}</span></div>
-          <div class="row"><span class="label">Nº OP:</span><span>${data.numeroOp || 'N/A'}</span></div>
-          <div class="row"><span class="label">Nº Carga / NF:</span><span>${data.numeroCarga}</span></div>
-          <div class="row"><span class="label">Transportadora:</span><span>${data.transportadora}</span></div>
-          <div class="row"><span class="label">Cliente:</span><span>${data.cliente}</span></div>
-          <div class="row"><span class="label">Doca Alocada:</span><span>${data.doca || 'N/A'}</span></div>
-          <div class="row"><span class="label">Status Atual:</span><span>${data.status}</span></div>
-          <div class="row"><span class="label">Cadastro:</span><span>${data.dataCadastro} às ${data.horarioCadastro}</span></div>
-          <div class="row"><span class="label">Horário Check-in:</span><span>${formatDateTime(data.horarioCheckin)}</span></div>
-          <div class="row"><span class="label">Horário Chamada:</span><span>${formatDateTime(data.horarioChamada)}</span></div>
-          <div class="row"><span class="label">Horário Entrada Doca:</span><span>${formatDateTime(data.horarioChegadaDoca)}</span></div>
-          <div class="row"><span class="label">Início Operação:</span><span>${formatDateTime(data.horarioInicioOperacao)}</span></div>
-          <div class="row"><span class="label">Fim Operação:</span><span>${formatDateTime(data.horarioFinalizacao)}</span></div>
-          <div class="row"><span class="label">Horário Saída:</span><span>${formatDateTime(data.horarioSaida)}</span></div>
-          <div class="row"><span class="label">Observações:</span><span>${data.observacao || 'Nenhuma'}</span></div>
-          <script>window.onload = function() { window.print(); };<\/script>
-        </body>
-      </html>
-    `);
-    win.document.close();
-  } catch (err) {
-    alert("Erro ao gerar relatório de detalhes: " + err.message);
-  }
-};
-
-// ==========================================================================
-// 11. AUTOLOAD DE CHECK-IN VIA URL (LEITURA DIRETA DO CELULAR)
-// ==========================================================================
-window.addEventListener('DOMContentLoaded', () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const idViaUrl = urlParams.get('id');
-
-  if (idViaUrl) {
-    window.navegarPara('aba-checkin');
-    processarCheckinQRCode(idViaUrl);
-  }
-});

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistema de Gestão de Pátio - Transportadora Paulão</title>
   
-  <!-- Bibliotecas Externas (QR Code Generator, HTML5 QR Scanner Câmera e Chart.js) -->
+  <!-- Bibliotecas Externas -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -24,7 +24,7 @@
       </div>
       <div>
         <h1>Transportadora Paulão</h1>
-        <span class="system-title" id="page-subtitle">Controle de Portaria & Pátio</span>
+        <span class="system-title" id="page-subtitle">Controle de Portaria &amp; Pátio</span>
       </div>
     </div>
     
@@ -49,7 +49,7 @@
           <h2>Autenticação</h2>
           <p class="card-subtitle">Acesse o sistema para continuar</p>
         </div>
-        <form id="form-login" onsubmit="event.preventDefault(); const e=document.getElementById('login-email').value; const s=document.getElementById('login-senha').value; window.fazerLogin(e,s);">
+        <form id="form-login" onsubmit="event.preventDefault(); window.fazerLogin(document.getElementById('login-email').value, document.getElementById('login-senha').value);">
           <div class="form-group" style="margin-bottom: 12px;">
             <label for="login-email">E-MAIL</label>
             <input type="email" id="login-email" required placeholder="seu.email@empresa.com">
@@ -65,13 +65,33 @@
 
     <!-- 1. ABA: PORTARIA / ENTRADA DE VEÍCULOS -->
     <div id="aba-entrada" class="aba-conteudo">
+      
+      <!-- BUSCA RÁPIDA PARA REVISAR/EDITAR CADASTRO -->
+      <section class="card shadow-sm" style="margin-bottom: 15px; border-left: 4px solid var(--accent);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h3 style="font-size: 1rem; color: var(--primary); margin: 0;">Revisão / Edição de Cadastro Existente</h3>
+            <p class="card-subtitle" style="margin: 0;">Localize um cadastro por ID ou Placa para alterar dados do motorista, veículo ou carga.</p>
+          </div>
+          <form style="display: flex; gap: 8px; flex: 1; max-width: 450px;" onsubmit="event.preventDefault(); window.buscarCadastroParaEdicao();">
+            <input type="text" id="input-busca-edicao" placeholder="ID (ATD-...) ou Placa" style="flex: 1;" required>
+            <button type="submit" class="btn btn-outline btn-sm">✏️ Localizar e Editar</button>
+          </form>
+        </div>
+      </section>
+
       <section class="card">
-        <div class="card-header">
-          <h2>Registro de Entrada de Veículo</h2>
-          <p class="card-subtitle">Cadastre os dados da carga e do motorista para liberação ao pátio</p>
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+          <div>
+            <h2 id="titulo-form-entrada">Registro de Entrada de Veículo</h2>
+            <p class="card-subtitle" id="subtitulo-form-entrada">Cadastre os dados da carga e do motorista para liberação ao pátio</p>
+          </div>
+          <button type="button" id="btn-cancelar-edicao" class="btn btn-secondary btn-sm hidden" onclick="window.cancelarEdicaoCadastro()">❌ Cancelar Edição</button>
         </div>
 
-        <form id="form-entrada" onsubmit="event.preventDefault(); salvarEntrada();">
+        <form id="form-entrada" onsubmit="event.preventDefault(); window.salvarEntrada();">
+          <input type="hidden" id="edit-doc-id" value="">
+          
           <div class="form-grid">
             <div class="form-group">
               <label for="placa-veiculo">PLACA DO VEÍCULO *</label>
@@ -156,7 +176,7 @@
           </div>
 
           <div class="actions-wrapper">
-            <button type="submit" class="btn btn-primary" style="width: 100%;">Registrar Entrada e Gerar Ticket</button>
+            <button type="submit" id="btn-submit-entrada" class="btn btn-primary" style="width: 100%;">Registrar Entrada e Gerar Ticket</button>
           </div>
         </form>
       </section>
@@ -186,8 +206,9 @@
           </div>
 
           <div class="ticket-actions" style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-            <button class="btn btn-primary" onclick="imprimirTicketEntrada()" style="flex: 1; min-width: 140px;">🖨️ Imprimir Ticket</button>
-            <button class="btn btn-outline" onclick="document.getElementById('area-ticket').classList.add('hidden')" style="flex: 1; min-width: 100px;">Concluir</button>
+            <button class="btn btn-outline" onclick="window.revisarTicketAtual()" style="flex: 1; min-width: 130px;">✏️ Revisar / Editar</button>
+            <button class="btn btn-primary" onclick="window.imprimirTicketEntrada()" style="flex: 1; min-width: 140px;">🖨️ Imprimir Ticket</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('area-ticket').classList.add('hidden')" style="flex: 1; min-width: 90px;">Concluir</button>
           </div>
         </div>
       </section>
@@ -201,7 +222,7 @@
 
         <div id="checkin-alert" class="alert hidden"></div>
 
-        <button id="btn-scan-checkin" class="btn btn-primary btn-lg" onclick="habilitarScannerCheckin()">📷 ESCANEAR QR CODE (CHECK-IN)</button>
+        <button id="btn-scan-checkin" class="btn btn-primary btn-lg" onclick="window.habilitarScannerCheckin()">📷 ESCANEAR QR CODE (CHECK-IN)</button>
 
         <div id="reader-checkin" class="hidden" style="width: 100%; max-width: 400px; margin: 20px auto; border-radius: 8px; overflow: hidden;"></div>
 
@@ -225,7 +246,7 @@
         <div class="docas-grid" id="container-docas-grid"></div>
       </section>
 
-      <!-- FILA DE ESPERA CONFORME A IMAGEM FORNECIDA -->
+      <!-- FILA DE ESPERA -->
       <section class="card">
         <h2>Fila de Espera (Aguardando Chamada - FIFO)</h2>
         <div class="table-responsive">
@@ -252,7 +273,7 @@
       <section class="card">
         <h2>Escanear QR Code na Doca (Validação / Início / Finalização)</h2>
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <button class="btn btn-primary" onclick="habilitarScannerDoca()" style="width: 100%;">📷 Leitor de QR Code na Doca</button>
+          <button class="btn btn-primary" onclick="window.habilitarScannerDoca()" style="width: 100%;">📷 Leitor de QR Code na Doca</button>
         </div>
         <div id="reader-doca" class="hidden" style="width: 100%; max-width: 400px; margin: 20px auto;"></div>
       </section>
@@ -281,8 +302,8 @@
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
-          <button class="btn btn-secondary" onclick="fecharModalChamar()" style="flex: 1;">Cancelar</button>
-          <button class="btn btn-success" onclick="confirmarChamadaDoca()" style="flex: 1;">Confirmar</button>
+          <button class="btn btn-secondary" onclick="window.fecharModalChamar()" style="flex: 1;">Cancelar</button>
+          <button class="btn btn-success" onclick="window.confirmarChamadaDoca()" style="flex: 1;">Confirmar</button>
         </div>
       </div>
     </div>
@@ -291,7 +312,7 @@
     <div id="aba-balanca" class="aba-conteudo hidden">
       <section class="card">
         <h2>Localizar Atendimento para Pesagem e Liberação de Saída</h2>
-        <form id="form-buscar-balanca" style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;" onsubmit="event.preventDefault(); buscarAtendimentoBalanca();">
+        <form id="form-buscar-balanca" style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;" onsubmit="event.preventDefault(); window.buscarAtendimentoBalanca();">
           <input type="text" id="input-buscar-balanca" placeholder="Informe o ID ex: ATD-20260902-00001 ou Placa" style="flex: 1; min-width: 200px;" required>
           <button type="submit" class="btn btn-primary" style="min-width: 120px;">Buscar Veículo</button>
         </form>
@@ -310,20 +331,20 @@
           <div class="info-row"><span>STATUS ATUAL:</span> <strong id="bal-status">--</strong></div>
         </div>
 
-        <button type="button" class="btn btn-success" style="width: 100%; font-size: 1rem;" onclick="confirmarSaidaBalança()">
+        <button type="button" class="btn btn-success" style="width: 100%; font-size: 1rem;" onclick="window.confirmarSaidaBalança()">
           🚚 CONFIRMAR SAÍDA E LIBERAR PORTARIA
         </button>
       </section>
     </div>
 
-    <!-- 4.1. ABA: CONSULTA STATUS PÚBLICA / MOTORISTA -->
+    <!-- 4.1. ABA: CONSULTA STATUS PÚBLICA -->
     <div id="aba-consulta" class="aba-conteudo hidden">
       <section class="card">
         <div class="card-header">
           <h2>Consultar Status de Atendimento</h2>
           <p class="card-subtitle">Informe o ID do Atendimento ou a Placa para acompanhar a posição</p>
         </div>
-        <form id="form-consulta-status" style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;" onsubmit="event.preventDefault(); consultarStatusPublico();">
+        <form id="form-consulta-status" style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;" onsubmit="event.preventDefault(); window.consultarStatusPublico();">
           <input type="text" id="input-consulta-termo" placeholder="Ex: ATD-20260902-00001 ou ABC1D23" style="flex: 1; min-width: 200px;" required>
           <button type="submit" class="btn btn-primary" style="min-width: 120px;">Consultar</button>
         </form>
@@ -384,16 +405,16 @@
       <section class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
           <h2>Histórico Geral e Relatórios</h2>
-          <button class="btn btn-success" onclick="imprimirRelatorioAdmin('geral')">🖨️ Imprimir Relatório Geral</button>
+          <button class="btn btn-success" onclick="window.imprimirRelatorioAdmin('geral')">🖨️ Imprimir Relatório Geral</button>
         </div>
 
-        <!-- FILTROS DE RELATÓRIO E BUSCA -->
+        <!-- FILTROS DE RELATÓRIO -->
         <div class="relatorio-filter-container" style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px;">
           <h4 style="margin-bottom: 10px; color: var(--primary);">Filtrar Relatório por Período / Busca</h4>
           <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
             <div style="flex: 1; min-width: 150px;">
               <label style="font-size: 0.78rem; font-weight: bold;">TIPO DE FILTRO</label>
-              <select id="select-tipo-filtro-data" onchange="alternarCamposFiltroData()" style="padding: 6px; width: 100%;">
+              <select id="select-tipo-filtro-data" onchange="window.alternarCamposFiltroData()" style="padding: 6px; width: 100%;">
                 <option value="todos">Todos os Registros</option>
                 <option value="dia">Por Dia Específico</option>
                 <option value="mes">Por Mês/Ano</option>
@@ -422,8 +443,8 @@
             </div>
 
             <div style="display: flex; gap: 6px;">
-              <button class="btn btn-primary btn-sm" onclick="aplicarFiltrosAdmin()">🔍 Filtrar</button>
-              <button class="btn btn-outline btn-sm" onclick="imprimirRelatorioAdmin('filtrado')">🖨️ Imprimir Filtrado</button>
+              <button class="btn btn-primary btn-sm" onclick="window.aplicarFiltrosAdmin()">🔍 Filtrar</button>
+              <button class="btn btn-outline btn-sm" onclick="window.imprimirRelatorioAdmin('filtrado')">🖨️ Imprimir Filtrado</button>
             </div>
           </div>
         </div>
@@ -453,7 +474,7 @@
   </main>
 
   <footer class="app-footer">
-    Desenvolvido por Renata A.S. com auxílio de Gemini AI &copy; 2026 Transportadora Paulão
+    Desenvolvido por Renata A.S. com auxílio de Gemini AI &copy; 2026 Transportadora Paulão[cite: 21, 24]
   </footer>
 
   <script type="module" src="script.js"></script>

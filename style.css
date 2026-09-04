@@ -26,7 +26,7 @@ body {
   flex-direction: column;
 }
 
-/* Header & Navegação Responsivos */
+/* Header & Navegação */
 .main-header {
   background-color: var(--primary);
   color: #fff;
@@ -80,16 +80,6 @@ body {
   overflow-x: auto;
   max-width: 100%;
   padding-bottom: 4px;
-  -webkit-overflow-scrolling: touch;
-}
-
-.nav-menu::-webkit-scrollbar {
-  height: 4px;
-}
-
-.nav-menu::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
 }
 
 .nav-menu a, .btn-logout {
@@ -122,7 +112,7 @@ body {
   color: #fff;
 }
 
-/* Containers e Cards */
+/* Container Principal e Cards */
 .container {
   width: 100%;
   max-width: 1100px;
@@ -157,7 +147,7 @@ body {
   margin-top: 4px;
 }
 
-/* Form Grid Responsivo */
+/* Form Layout */
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -186,7 +176,7 @@ body {
   font-size: 0.75rem;
 }
 
-.form-group input, .form-group select, .form-group textarea {
+.form-group input, .form-group select, .form-group textarea, #input-busca-edicao {
   padding: 10px 12px;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
@@ -196,14 +186,14 @@ body {
   width: 100%;
 }
 
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus, #input-busca-edicao:focus {
   border-color: var(--primary);
   background-color: #fff;
   outline: none;
   box-shadow: 0 0 0 3px rgba(10, 61, 98, 0.12);
 }
 
-/* Botões Adaptáveis */
+/* Botões */
 .actions-wrapper {
   display: flex;
   gap: 12px;
@@ -232,15 +222,8 @@ body {
 .btn-primary { background-color: var(--primary); color: #fff; }
 .btn-primary:hover { background-color: var(--primary-hover); }
 
-.btn-chamar-veiculo {
-  background-color: #0a3d62;
-  color: #ffffff;
-  font-weight: bold;
-  border-radius: 6px;
-}
-.btn-chamar-veiculo:hover {
-  background-color: #0c2461;
-}
+.btn-chamar-veiculo { background-color: #0a3d62; color: #ffffff; font-weight: bold; border-radius: 6px; }
+.btn-chamar-veiculo:hover { background-color: #0c2461; }
 
 .btn-outline { background-color: transparent; border: 1px solid var(--accent); color: var(--accent); }
 .btn-outline:hover { background-color: #eaf2f8; }
@@ -252,7 +235,7 @@ body {
 
 .hidden { display: none !important; }
 
-/* Grid de Docas Responsivo */
+/* Grid de Docas */
 .docas-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -283,14 +266,8 @@ body {
 .doca-info-vazio { font-size: 0.8rem; color: #95a5a6; font-style: italic; }
 .doca-detalhes { font-size: 0.8rem; color: #34495e; margin-bottom: 10px; }
 
-/* Tabelas com Scroll Horizontal Responsivo */
-.table-responsive {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  margin-top: 12px;
-}
-
+/* Tabelas */
+.table-responsive { width: 100%; overflow-x: auto; margin-top: 12px; }
 .table-custom { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; min-width: 600px; }
 .table-custom th, .table-custom td { padding: 10px 12px; border-bottom: 1px solid var(--border-color); }
 .table-custom th { background-color: #f8fafc; color: #475569; font-weight: 600; white-space: nowrap; }
@@ -305,12 +282,12 @@ body {
 .status-FINALIZADO { background: #d1fae5; color: #065f46; }
 .status-SAIDA_LIBERADA { background: #10b981; color: #ffffff; }
 
-/* Dashboard Cards Responsivos */
+/* Dashboard Cards */
 .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 15px; }
 .stat-card { text-align: center; padding: 14px; margin-bottom: 0; }
 .stat-number { font-size: 1.8rem; font-weight: bold; color: var(--primary); display: block; margin-top: 4px; }
 
-/* Modal Responsivo */
+/* Modal */
 .modal-overlay {
   position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
   background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 2000;
@@ -336,46 +313,10 @@ body {
   background-color: var(--card-bg);
 }
 
-/* Media Queries para Telas Menores */
 @media (max-width: 768px) {
-  .main-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .nav-menu {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-group.full-width {
-    grid-column: span 1;
-  }
-
-  .actions-wrapper button {
-    width: 100%;
-  }
-
-  .docas-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  }
-}
-
-@media (max-width: 480px) {
-  .card {
-    padding: 14px;
-  }
-
-  .modal-content {
-    padding: 16px;
-  }
-
-  .ticket-info .info-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+  .main-header { flex-direction: column; align-items: flex-start; }
+  .nav-menu { width: 100%; justify-content: flex-start; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-group.full-width { grid-column: span 1; }
+  .actions-wrapper button { width: 100%; }
 }
