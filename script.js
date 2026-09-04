@@ -31,6 +31,18 @@ let meuGrafico = null;
 let usuarioLogado = null;
 let unsubscribeFila = null;
 let historicoCompleto = [];
+let historicoExibido = [];
+
+// MAPEAMENTO DE CORES EXCLUSIVAS POR TIPO DE OPERAÇÃO
+const OPERACAO_CORES = {
+  'CARREGAMENTO': '#0a3d62',   // Azul Escuro
+  'DESCARGA': '#e67e22',       // Laranja
+  'COLETA': '#27ae60',        // Verde
+  'ENTREGA': '#2980b9',       // Azul Claro
+  'TRANSFERENCIA': '#8e44ad',  // Roxo
+  'DEVOLUCAO': '#c0392b',     // Vermelho
+  'OUTRO': '#7f8c8d'          // Cinza
+};
 
 // ==========================================================================
 // 2. MÁSCARAS E MÉTODOS UTILITÁRIOS
@@ -75,7 +87,6 @@ function gerarAtendimentoId() {
   return `ATD-${dataFormatada}-${aleatorio}`;
 }
 
-// Extrai o código puro do QR Code, garantindo o correto isolamento do id mesmo com múltiplos parâmetros
 function extrairCodigoQRCode(qrText) {
   if (!qrText) return "";
   if (qrText.includes("id=")) {
@@ -146,7 +157,7 @@ window.salvarEntrada = async function() {
   const documentoAjudante = document.getElementById('cpf-ajudante')?.value.trim();
   const telefone = document.getElementById('telefone-motorista')?.value.trim();
   const tipoOperacao = document.getElementById('tipo-operacao')?.value;
-  const numeroOp = document.getElementById('numero-op')?.value.trim() || "N/A"; // Leitura do campo OP
+  const numeroOp = document.getElementById('numero-op')?.value.trim() || "N/A";
   const numeroCarga = document.getElementById('numero-carga')?.value.trim();
   const transportadora = document.getElementById('transportadora')?.value.trim();
   const cliente = document.getElementById('cliente')?.value.trim();
@@ -165,7 +176,7 @@ window.salvarEntrada = async function() {
     placa, tipoVeiculo, motorista, documentoMotorista, 
     ajudante: ajudante || "", documentoAjudante: documentoAjudante || "",
     telefone, transportadora, tipoOperacao, 
-    numeroOp, // Persistido no documento
+    numeroOp,
     numeroCarga, cliente,
     observacao: observacao || "",
     dataCadastro: agora.toISOString().slice(0, 10),
@@ -188,7 +199,6 @@ window.salvarEntrada = async function() {
     document.getElementById('ticket-carga').innerText = numeroCarga;
     document.getElementById('ticket-data').innerText = `${dadosAtendimento.dataCadastro} ${dadosAtendimento.horarioCadastro}`;
 
-    // ALTERADO: URL apontando para a raiz em vez de /checkin
     const qrPayload = `https://projetotransportadora-828a3.web.app/?id=${idPersonalizado}&op=${encodeURIComponent(numeroOp)}&placa=${encodeURIComponent(placa)}`;
     const qrContainer = document.getElementById('qrcode-container');
     if (qrContainer) {
@@ -268,19 +278,21 @@ async function processarCheckinQRCode(qrValue) {
     const docSnap = snap.docs[0];
     const data = docSnap.data();
 
-    if (data.status !== "CADASTRADO") {
-      throw new Error(`Este veículo já está no status: ${data.status}`);
+    let novoStatus = data.status;
+    if (data.status === "CADASTRADO") {
+      novoStatus = "AGUARDANDO_CHAMADA";
+      await updateDoc(doc(db, COLECAO_ATENDIMENTOS, docSnap.id), {
+        status: novoStatus,
+        horarioCheckin: serverTimestamp(),
+        atualizadoEm: serverTimestamp()
+      });
     }
 
-    await updateDoc(doc(db, COLECAO_ATENDIMENTOS, docSnap.id), {
-      status: "AGUARDANDO_CHAMADA",
-      horarioCheckin: serverTimestamp(),
-      atualizadoEm: serverTimestamp()
-    });
-
+    // Exibe os dados do atendimento na tela
     document.getElementById('checkin-resumo-id').innerText = data.atendimentoId;
     document.getElementById('checkin-resumo-placa').innerText = data.placa;
     document.getElementById('checkin-resumo-motorista').innerText = data.motorista;
+    document.getElementById('checkin-resumo-status').innerText = novoStatus;
 
     document.getElementById('card-confirmacao-checkin')?.classList.remove('hidden');
     if (alertBox) alertBox.classList.add('hidden');
@@ -377,11 +389,13 @@ function renderizarGridDocas(lista) {
   });
 }
 
+// RENDERIZAÇÃO CONFORME A IMAGEM
 function renderizarFilaEspera(lista) {
   const tbody = document.getElementById('tbody-fila-espera');
   if (!tbody) return;
 
   tbody.innerHTML = "";
+  // Filtra por 'AGUARDANDO_CHAMADA' e ordena por horário de checkin (FIFO)
   const fila = lista.filter(item => item.status === "AGUARDANDO_CHAMADA");
 
   if (fila.length === 0) {
@@ -399,7 +413,11 @@ function renderizarFilaEspera(lista) {
       <td>${item.motorista}</td>
       <td>${item.tipoOperacao}</td>
       <td>${item.transportadora}</td>
-      <td><button class="btn btn-primary btn-sm" onclick="abrirModalChamar('${item.idFirestore}', '${item.placa}')">📢 CHAMAR VEÍCULO</button></td>
+      <td>
+        <button class="btn btn-sm btn-chamar-veiculo" onclick="abrirModalChamar('${item.idFirestore}', '${item.placa}')">
+          📣 CHAMAR VEÍCULO
+        </button>
+      </td>
     `;
     tbody.appendChild(tr);
   });
@@ -542,7 +560,7 @@ window.consultarStatusPublico = async function() {
 };
 
 // ==========================================================================
-// 10. PAINEL ADMIN E HISTÓRICO
+// 10. PAINEL ADMIN, FILTROS, GRÁFICOS COLORIDOS E RELATÓRIOS
 // ==========================================================================
 window.carregarHistoricoAtendimentos = async function() {
   try {
@@ -550,34 +568,59 @@ window.carregarHistoricoAtendimentos = async function() {
     historicoCompleto = [];
     snap.forEach(d => historicoCompleto.push({ idFirestore: d.id, ...d.data() }));
 
-    renderizarDashboardEAdmin(historicoCompleto);
+    historicoExibido = [...historicoCompleto];
+    renderizarDashboardEAdmin(historicoExibido);
   } catch (err) { console.error(err); }
 };
 
-document.getElementById('input-busca-admin')?.addEventListener('input', (e) => {
-  const termo = e.target.value.toLowerCase().trim();
-  if (!termo) {
-    renderizarDashboardEAdmin(historicoCompleto);
-    return;
+window.alternarCamposFiltroData = function() {
+  const tipo = document.getElementById('select-tipo-filtro-data')?.value;
+  document.getElementById('box-filtro-dia')?.classList.add('hidden');
+  document.getElementById('box-filtro-mes')?.classList.add('hidden');
+  document.getElementById('box-filtro-ano')?.classList.add('hidden');
+
+  if (tipo === 'dia') document.getElementById('box-filtro-dia')?.classList.remove('hidden');
+  if (tipo === 'mes') document.getElementById('box-filtro-mes')?.classList.remove('hidden');
+  if (tipo === 'ano') document.getElementById('box-filtro-ano')?.classList.remove('hidden');
+};
+
+window.aplicarFiltrosAdmin = function() {
+  const tipoFiltro = document.getElementById('select-tipo-filtro-data')?.value;
+  const termoTexto = document.getElementById('input-busca-admin')?.value.toLowerCase().trim();
+
+  let lista = [...historicoCompleto];
+
+  if (tipoFiltro === 'dia') {
+    const diaVal = document.getElementById('filtro-data-dia')?.value;
+    if (diaVal) lista = lista.filter(item => item.dataCadastro === diaVal);
+  } else if (tipoFiltro === 'mes') {
+    const mesVal = document.getElementById('filtro-data-mes')?.value;
+    if (mesVal) lista = lista.filter(item => item.dataCadastro && item.dataCadastro.startsWith(mesVal));
+  } else if (tipoFiltro === 'ano') {
+    const anoVal = document.getElementById('filtro-data-ano')?.value;
+    if (anoVal) lista = lista.filter(item => item.dataCadastro && item.dataCadastro.startsWith(anoVal));
   }
 
-  const listaFiltrada = historicoCompleto.filter(item => {
-    return (
-      (item.atendimentoId && item.atendimentoId.toLowerCase().includes(termo)) ||
-      (item.placa && item.placa.toLowerCase().includes(termo)) ||
-      (item.motorista && item.motorista.toLowerCase().includes(termo)) ||
-      (item.tipoOperacao && item.tipoOperacao.toLowerCase().includes(termo)) ||
-      (item.status && item.status.toLowerCase().includes(termo)) ||
-      (item.doca && item.doca.toLowerCase().includes(termo)) ||
-      (item.numeroOp && item.numeroOp.toLowerCase().includes(termo))
-    );
-  });
+  if (termoTexto) {
+    lista = lista.filter(item => {
+      return (
+        (item.atendimentoId && item.atendimentoId.toLowerCase().includes(termoTexto)) ||
+        (item.placa && item.placa.toLowerCase().includes(termoTexto)) ||
+        (item.motorista && item.motorista.toLowerCase().includes(termoTexto)) ||
+        (item.tipoOperacao && item.tipoOperacao.toLowerCase().includes(termoTexto)) ||
+        (item.status && item.status.toLowerCase().includes(termoTexto)) ||
+        (item.doca && item.doca.toLowerCase().includes(termoTexto)) ||
+        (item.numeroOp && item.numeroOp.toLowerCase().includes(termoTexto))
+      );
+    });
+  }
 
-  renderizarDashboardEAdmin(listaFiltrada);
-});
+  historicoExibido = lista;
+  renderizarDashboardEAdmin(historicoExibido);
+};
 
 document.getElementById('tipo-grafico-select')?.addEventListener('change', () => {
-  renderizarDashboardEAdmin(historicoCompleto);
+  renderizarDashboardEAdmin(historicoExibido);
 });
 
 function renderizarDashboardEAdmin(lista) {
@@ -593,7 +636,8 @@ function renderizarDashboardEAdmin(lista) {
     if (["NA_DOCA", "EM_OPERACAO"].includes(item.status)) doca++;
     if (["FINALIZADO", "SAIDA_LIBERADA"].includes(item.status)) finalizados++;
 
-    contagemOperacoes[item.tipoOperacao] = (contagemOperacoes[item.tipoOperacao] || 0) + 1;
+    const op = item.tipoOperacao ? item.tipoOperacao.toUpperCase() : 'OUTRO';
+    contagemOperacoes[op] = (contagemOperacoes[op] || 0) + 1;
 
     if (tbody) {
       const tr = document.createElement('tr');
@@ -618,6 +662,110 @@ function renderizarDashboardEAdmin(lista) {
 
   renderizarGraficoAdmin(contagemOperacoes);
 }
+
+function renderizarGraficoAdmin(dados) {
+  const ctx = document.getElementById('graficoOperacoes')?.getContext('2d');
+  if (!ctx) return;
+
+  if (meuGrafico) meuGrafico.destroy();
+
+  const labels = Object.keys(dados);
+  const valores = Object.values(dados);
+  const tipoGrafico = document.getElementById('tipo-grafico-select')?.value || 'bar';
+
+  const cores = labels.map(label => OPERACAO_CORES[label.toUpperCase()] || '#7f8c8d');
+
+  const configDataset = {
+    label: 'Quantidade por Operação',
+    data: valores,
+    backgroundColor: tipoGrafico === 'line' ? 'rgba(10, 61, 98, 0.1)' : cores,
+    borderColor: tipoGrafico === 'line' ? '#0a3d62' : cores,
+    borderWidth: 2,
+    pointBackgroundColor: cores,
+    pointRadius: tipoGrafico === 'line' ? 6 : 0,
+    fill: tipoGrafico === 'line'
+  };
+
+  meuGrafico = new Chart(ctx, {
+    type: tipoGrafico,
+    data: {
+      labels: labels,
+      datasets: [configDataset]
+    },
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+    }
+  });
+}
+
+window.imprimirRelatorioAdmin = function(tipo) {
+  const listaParaImprimir = tipo === 'geral' ? historicoCompleto : historicoExibido;
+
+  if (listaParaImprimir.length === 0) {
+    alert("Nenhum registro para imprimir no relatório.");
+    return;
+  }
+
+  const win = window.open('', '_blank', 'width=900,height=700');
+  let linhasHtml = '';
+
+  listaParaImprimir.forEach(item => {
+    linhasHtml += `
+      <tr>
+        <td>${item.atendimentoId}</td>
+        <td>${item.placa}</td>
+        <td>${item.motorista}</td>
+        <td>${item.tipoOperacao}</td>
+        <td>${item.numeroOp || '-'}</td>
+        <td>${item.doca || '-'}</td>
+        <td>${item.dataCadastro} ${item.horarioCadastro}</td>
+        <td>${item.status}</td>
+      </tr>
+    `;
+  });
+
+  win.document.write(`
+    <html>
+      <head>
+        <title>Relatório de Operações do Pátio - Transportadora Paulão</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; color: #2c3e50; }
+          h2 { color: #0a3d62; margin-bottom: 4px; }
+          .sub { color: #555; font-size: 0.9rem; margin-bottom: 16px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+          th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+          th { background-color: #f2f2f2; color: #0a3d62; }
+        </style>
+      </head>
+      <body>
+        <h2>TRANSPORTADORA PAULÃO - RELATÓRIO DE OPERAÇÕES</h2>
+        <div class="sub">Tipo: ${tipo === 'geral' ? 'Geral (Todas as Operações)' : 'Filtrado por Período / Busca'} | Total de Registros: ${listaParaImprimir.length} | Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Placa</th>
+              <th>Motorista</th>
+              <th>Operação</th>
+              <th>OP</th>
+              <th>Doca</th>
+              <th>Data/Hora</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${linhasHtml}
+          </tbody>
+        </table>
+        <script>window.onload = function() { window.print(); };<\/script>
+      </body>
+    </html>
+  `);
+  win.document.close();
+};
 
 window.imprimirAuditoriaAtendimento = async function(idFirestore) {
   try {
@@ -675,22 +823,6 @@ window.imprimirAuditoriaAtendimento = async function(idFirestore) {
   }
 };
 
-function renderizarGraficoAdmin(dados) {
-  const ctx = document.getElementById('graficoOperacoes')?.getContext('2d');
-  if (!ctx) return;
-
-  if (meuGrafico) meuGrafico.destroy();
-
-  meuGrafico = new Chart(ctx, {
-    type: document.getElementById('tipo-grafico-select')?.value || 'bar',
-    data: {
-      labels: Object.keys(dados),
-      datasets: [{ label: 'Quantidade por Operação', data: Object.values(dados), backgroundColor: '#0a3d62' }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
-}
-
 // ==========================================================================
 // 11. AUTOLOAD DE CHECK-IN VIA URL (LEITURA DIRETA DO CELULAR)
 // ==========================================================================
@@ -699,10 +831,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const idViaUrl = urlParams.get('id');
 
   if (idViaUrl) {
-    // Redireciona para a tela de Check-in
     window.navegarPara('aba-checkin');
-    
-    // Dispara a validação e alteração do status para AGUARDANDO_CHAMADA
     processarCheckinQRCode(idViaUrl);
   }
 });

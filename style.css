@@ -232,6 +232,16 @@ body {
 .btn-primary { background-color: var(--primary); color: #fff; }
 .btn-primary:hover { background-color: var(--primary-hover); }
 
+.btn-chamar-veiculo {
+  background-color: #0a3d62;
+  color: #ffffff;
+  font-weight: bold;
+  border-radius: 6px;
+}
+.btn-chamar-veiculo:hover {
+  background-color: #0c2461;
+}
+
 .btn-outline { background-color: transparent; border: 1px solid var(--accent); color: var(--accent); }
 .btn-outline:hover { background-color: #eaf2f8; }
 
