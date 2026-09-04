@@ -30,6 +30,7 @@ let html5QrScanner = null;
 let meuGrafico = null;
 let usuarioLogado = null;
 let unsubscribeFila = null;
+let historicoCompleto = [];
 
 // ==========================================================================
 // 2. MÁSCARAS E MÉTODOS UTILITÁRIOS
@@ -72,6 +73,16 @@ function gerarAtendimentoId() {
   const dataFormatada = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
   const aleatorio = String(Math.floor(Math.random() * 90000) + 10000);
   return `ATD-${dataFormatada}-${aleatorio}`;
+}
+
+// Extrai o código puro do QR Code, garantindo o correto isolamento do id mesmo com múltiplos parâmetros
+function extrairCodigoQRCode(qrText) {
+  if (!qrText) return "";
+  if (qrText.includes("id=")) {
+    const params = new URLSearchParams(qrText.includes("?") ? qrText.split("?")[1] : qrText);
+    return params.get("id") || qrText.split("id=")[1].split("&")[0].trim();
+  }
+  return qrText.trim();
 }
 
 // ==========================================================================
@@ -135,6 +146,7 @@ window.salvarEntrada = async function() {
   const documentoAjudante = document.getElementById('cpf-ajudante')?.value.trim();
   const telefone = document.getElementById('telefone-motorista')?.value.trim();
   const tipoOperacao = document.getElementById('tipo-operacao')?.value;
+  const numeroOp = document.getElementById('numero-op')?.value.trim() || "N/A"; // Leitura do campo OP
   const numeroCarga = document.getElementById('numero-carga')?.value.trim();
   const transportadora = document.getElementById('transportadora')?.value.trim();
   const cliente = document.getElementById('cliente')?.value.trim();
@@ -152,7 +164,9 @@ window.salvarEntrada = async function() {
     atendimentoId: idPersonalizado,
     placa, tipoVeiculo, motorista, documentoMotorista, 
     ajudante: ajudante || "", documentoAjudante: documentoAjudante || "",
-    telefone, transportadora, tipoOperacao, numeroCarga, cliente,
+    telefone, transportadora, tipoOperacao, 
+    numeroOp, // Persistido no documento
+    numeroCarga, cliente,
     observacao: observacao || "",
     dataCadastro: agora.toISOString().slice(0, 10),
     horarioCadastro: formatTimeOnly(agora),
@@ -166,6 +180,7 @@ window.salvarEntrada = async function() {
     await addDoc(collection(db, COLECAO_ATENDIMENTOS), dadosAtendimento);
 
     document.getElementById('ticket-id').innerText = idPersonalizado;
+    document.getElementById('ticket-op').innerText = numeroOp;
     document.getElementById('ticket-placa').innerText = placa;
     document.getElementById('ticket-motorista').innerText = motorista;
     document.getElementById('ticket-ajudante').innerText = ajudante ? `${ajudante} (${documentoAjudante})` : 'Nenhum';
@@ -173,7 +188,8 @@ window.salvarEntrada = async function() {
     document.getElementById('ticket-carga').innerText = numeroCarga;
     document.getElementById('ticket-data').innerText = `${dadosAtendimento.dataCadastro} ${dadosAtendimento.horarioCadastro}`;
 
-    const qrPayload = `https://projetotransportadora-828a3.web.app/checkin?id=${idPersonalizado}`;
+    // ALTERADO: URL apontando para a raiz em vez de /checkin
+    const qrPayload = `https://projetotransportadora-828a3.web.app/?id=${idPersonalizado}&op=${encodeURIComponent(numeroOp)}&placa=${encodeURIComponent(placa)}`;
     const qrContainer = document.getElementById('qrcode-container');
     if (qrContainer) {
       qrContainer.innerHTML = "";
@@ -201,8 +217,38 @@ window.imprimirTicketEntrada = function() {
 };
 
 // ==========================================================================
-// 6. CHECK-IN DO MOTORISTA
+// 6. LEITOR DE QR CODE DA CÂMERA & PROCESSAMENTO
 // ==========================================================================
+window.iniciarCamera = async function(elementId, callbackSucesso) {
+  await window.pararCamera();
+  const element = document.getElementById(elementId);
+  if (element) element.classList.remove("hidden");
+
+  try {
+    html5QrScanner = new Html5Qrcode(elementId);
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+    await html5QrScanner.start(
+      { facingMode: { ideal: "environment" } },
+      config,
+      callbackSucesso,
+      () => {}
+    );
+  } catch (err) { 
+    alert("Erro ao acessar a câmera: " + err.message); 
+  }
+};
+
+window.pararCamera = async function() {
+  if (html5QrScanner) {
+    try { 
+      await html5QrScanner.stop(); 
+    } catch (e) {}
+    html5QrScanner.clear();
+    html5QrScanner = null;
+  }
+};
+
 window.habilitarScannerCheckin = function() {
   window.iniciarCamera("reader-checkin", async (qrMessage) => {
     await window.pararCamera();
@@ -213,16 +259,18 @@ window.habilitarScannerCheckin = function() {
 async function processarCheckinQRCode(qrValue) {
   const alertBox = document.getElementById("checkin-alert");
   try {
-    let atendimentoId = qrValue.includes("id=") ? qrValue.split("id=")[1] : qrValue;
+    const atendimentoId = extrairCodigoQRCode(qrValue);
     const q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", atendimentoId));
     const snap = await getDocs(q);
 
-    if (snap.empty) throw new Error("Atendimento não encontrado no sistema.");
+    if (snap.empty) throw new Error(`Atendimento (${atendimentoId}) não foi encontrado.`);
 
     const docSnap = snap.docs[0];
     const data = docSnap.data();
 
-    if (data.status !== "CADASTRADO") throw new Error(`Este atendimento já está no status: ${data.status}`);
+    if (data.status !== "CADASTRADO") {
+      throw new Error(`Este veículo já está no status: ${data.status}`);
+    }
 
     await updateDoc(doc(db, COLECAO_ATENDIMENTOS, docSnap.id), {
       status: "AGUARDANDO_CHAMADA",
@@ -245,8 +293,40 @@ async function processarCheckinQRCode(qrValue) {
   }
 }
 
+window.habilitarScannerDoca = function() {
+  window.iniciarCamera("reader-doca", async (qrMessage) => {
+    await window.pararCamera();
+    const atendimentoId = extrairCodigoQRCode(qrMessage);
+
+    const q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", atendimentoId));
+    const snap = await getDocs(q);
+
+    if (snap.empty) return alert(`Atendimento (${atendimentoId}) não encontrado.`);
+
+    const docSnap = snap.docs[0];
+    const data = docSnap.data();
+
+    if (data.status === "CHAMADO" || data.status === "A_CAMINHO_DA_DOCA") {
+      await updateDoc(doc(db, COLECAO_ATENDIMENTOS, docSnap.id), {
+        status: "NA_DOCA",
+        horarioChegadaDoca: serverTimestamp(),
+        atualizadoEm: serverTimestamp()
+      });
+      alert(`Veículo ${data.placa} chegou e foi confirmado na ${data.doca}! Status alterado para NA_DOCA.`);
+    } else if (data.status === "NA_DOCA") {
+      window.iniciarOperacaoDoca(docSnap.id);
+      alert(`Iniciada a operação de carregamento/descarga para a placa ${data.placa}.`);
+    } else if (data.status === "EM_OPERACAO") {
+      window.finalizarOperacaoDoca(docSnap.id);
+      alert(`Operação na doca finalizada para o veículo ${data.placa}. Encaminhado para a Balança.`);
+    } else {
+      alert(`O veículo está com status "${data.status}". Nenhuma ação automática executada.`);
+    }
+  });
+};
+
 // ==========================================================================
-// 7. PAINEL DO LÍDER & DOCAS (REALTIME)
+// 7. PAINEL DO LÍDER & DOCAS (TEMPO REAL)
 // ==========================================================================
 function iniciarEscutaFilaETempoReal() {
   if (unsubscribeFila) unsubscribeFila();
@@ -376,35 +456,8 @@ window.finalizarOperacaoDoca = async function(idFirestore) {
   } catch (err) { alert("Erro ao finalizar doca."); }
 };
 
-window.habilitarScannerDoca = function() {
-  window.iniciarCamera("reader-doca", async (qrMessage) => {
-    await window.pararCamera();
-    let atendimentoId = qrMessage.includes("id=") ? qrMessage.split("id=")[1] : qrMessage;
-
-    const q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", atendimentoId));
-    const snap = await getDocs(q);
-
-    if (snap.empty) return alert("Atendimento não encontrado.");
-    const docSnap = snap.docs[0];
-    const data = docSnap.data();
-
-    if (data.status === "CHAMADO" || data.status === "A_CAMINHO_DA_DOCA") {
-      await updateDoc(doc(db, COLECAO_ATENDIMENTOS, docSnap.id), {
-        status: "NA_DOCA",
-        horarioChegadaDoca: serverTimestamp(),
-        atualizadoEm: serverTimestamp()
-      });
-      alert(`Veículo confirmado na ${data.doca}! Status alterado para NA_DOCA.`);
-    } else if (data.status === "NA_DOCA") {
-      window.iniciarOperacaoDoca(docSnap.id);
-    } else if (data.status === "EM_OPERACAO") {
-      window.finalizarOperacaoDoca(docSnap.id);
-    }
-  });
-};
-
 // ==========================================================================
-// 8. BALANÇA E SAÍDA DE VEÍCULOS
+// 8. BALANÇA & SAÍDA
 // ==========================================================================
 window.buscarAtendimentoBalanca = async function() {
   const termo = document.getElementById('input-buscar-balanca')?.value.trim();
@@ -456,7 +509,7 @@ window.confirmarSaidaBalança = async function() {
 };
 
 // ==========================================================================
-// 9. CONSULTA PÚBLICA DE STATUS
+// 9. CONSULTA DE STATUS PÚBLICA
 // ==========================================================================
 window.consultarStatusPublico = async function() {
   const termo = document.getElementById('input-consulta-termo')?.value.trim();
@@ -489,17 +542,43 @@ window.consultarStatusPublico = async function() {
 };
 
 // ==========================================================================
-// 10. PAINEL ADMIN, DASHBOARD & IMPRESSÃO AUDITORIA
+// 10. PAINEL ADMIN E HISTÓRICO
 // ==========================================================================
 window.carregarHistoricoAtendimentos = async function() {
   try {
     const snap = await getDocs(collection(db, COLECAO_ATENDIMENTOS));
-    const lista = [];
-    snap.forEach(d => lista.push({ idFirestore: d.id, ...d.data() }));
+    historicoCompleto = [];
+    snap.forEach(d => historicoCompleto.push({ idFirestore: d.id, ...d.data() }));
 
-    renderizarDashboardEAdmin(lista);
+    renderizarDashboardEAdmin(historicoCompleto);
   } catch (err) { console.error(err); }
 };
+
+document.getElementById('input-busca-admin')?.addEventListener('input', (e) => {
+  const termo = e.target.value.toLowerCase().trim();
+  if (!termo) {
+    renderizarDashboardEAdmin(historicoCompleto);
+    return;
+  }
+
+  const listaFiltrada = historicoCompleto.filter(item => {
+    return (
+      (item.atendimentoId && item.atendimentoId.toLowerCase().includes(termo)) ||
+      (item.placa && item.placa.toLowerCase().includes(termo)) ||
+      (item.motorista && item.motorista.toLowerCase().includes(termo)) ||
+      (item.tipoOperacao && item.tipoOperacao.toLowerCase().includes(termo)) ||
+      (item.status && item.status.toLowerCase().includes(termo)) ||
+      (item.doca && item.doca.toLowerCase().includes(termo)) ||
+      (item.numeroOp && item.numeroOp.toLowerCase().includes(termo))
+    );
+  });
+
+  renderizarDashboardEAdmin(listaFiltrada);
+});
+
+document.getElementById('tipo-grafico-select')?.addEventListener('change', () => {
+  renderizarDashboardEAdmin(historicoCompleto);
+});
 
 function renderizarDashboardEAdmin(lista) {
   let espera = 0, chamados = 0, doca = 0, finalizados = 0;
@@ -572,6 +651,7 @@ window.imprimirAuditoriaAtendimento = async function(idFirestore) {
           <div class="row"><span class="label">Telefone:</span><span>${data.telefone}</span></div>
           <div class="row"><span class="label">Tipo Veículo:</span><span>${data.tipoVeiculo}</span></div>
           <div class="row"><span class="label">Operação:</span><span>${data.tipoOperacao}</span></div>
+          <div class="row"><span class="label">Nº OP:</span><span>${data.numeroOp || 'N/A'}</span></div>
           <div class="row"><span class="label">Nº Carga / NF:</span><span>${data.numeroCarga}</span></div>
           <div class="row"><span class="label">Transportadora:</span><span>${data.transportadora}</span></div>
           <div class="row"><span class="label">Cliente:</span><span>${data.cliente}</span></div>
@@ -612,28 +692,17 @@ function renderizarGraficoAdmin(dados) {
 }
 
 // ==========================================================================
-// 11. CONTROLE DE CÂMERA E QR CODE
+// 11. AUTOLOAD DE CHECK-IN VIA URL (LEITURA DIRETA DO CELULAR)
 // ==========================================================================
-window.iniciarCamera = async function(elementId, callbackSucesso) {
-  window.pararCamera();
-  const element = document.getElementById(elementId);
-  if (element) element.classList.remove("hidden");
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const idViaUrl = urlParams.get('id');
 
-  try {
-    html5QrScanner = new Html5Qrcode(elementId);
-    await html5QrScanner.start(
-      { facingMode: { ideal: "environment" } },
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      callbackSucesso,
-      () => {}
-    );
-  } catch (err) { alert("Erro ao iniciar câmera: " + err.message); }
-};
-
-window.pararCamera = async function() {
-  if (html5QrScanner) {
-    try { await html5QrScanner.stop(); } catch (e) {}
-    html5QrScanner.clear();
-    html5QrScanner = null;
+  if (idViaUrl) {
+    // Redireciona para a tela de Check-in
+    window.navegarPara('aba-checkin');
+    
+    // Dispara a validação e alteração do status para AGUARDANDO_CHAMADA
+    processarCheckinQRCode(idViaUrl);
   }
-};
+});

@@ -5,286 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistema de Gestão de Pátio - Transportadora Paulão</title>
   
-  <!-- Bibliotecas Externas (QR Code, Scanner Câmera e Gráficos via CDN) -->
+  <!-- Bibliotecas Externas (QR Code Generator, HTML5 QR Scanner Câmera e Chart.js) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <style>
-    :root {
-      --primary: #0a3d62;
-      --primary-hover: #0c2461;
-      --accent: #3c6382;
-      --bg-color: #f1f4f8;
-      --card-bg: #ffffff;
-      --text-main: #2c3e50;
-      --border-color: #e1e8ef;
-      --success: #079992;
-      --success-hover: #009432;
-      --shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      min-height: 100vh;
-    }
-
-    /* Header & Navegação */
-    .main-header {
-      background-color: var(--primary);
-      color: #fff;
-      padding: 14px 28px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    }
-
-    .logo-container {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .system-logo-svg {
-      width: 44px;
-      height: 44px;
-      background: #ffffff;
-      border-radius: 8px;
-      padding: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-
-    .main-header h1 {
-      font-size: 1.25rem;
-      font-weight: 700;
-    }
-
-    .system-title {
-      font-size: 0.8rem;
-      color: #82ccdd;
-    }
-
-    .nav-menu {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .nav-menu a, .btn-logout {
-      color: #dcdde1;
-      text-decoration: none;
-      font-size: 0.88rem;
-      font-weight: 500;
-      padding: 8px 14px;
-      border-radius: 6px;
-      transition: all 0.2s ease;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-    }
-
-    .nav-menu a:hover, .nav-menu a.active {
-      background-color: rgba(255, 255, 255, 0.15);
-      color: #ffffff;
-      font-weight: 600;
-    }
-
-    /* Containers e Cards */
-    .container {
-      max-width: 1000px;
-      margin: 28px auto;
-      padding: 0 16px;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 20px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border-color);
-    }
-
-    .card-header {
-      margin-bottom: 20px;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 12px;
-    }
-
-    .card-header h2 {
-      font-size: 1.3rem;
-      color: var(--primary);
-    }
-
-    .card-subtitle {
-      font-size: 0.85rem;
-      color: #7f8c8d;
-      margin-top: 4px;
-    }
-
-    /* Form Grid */
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .form-group label {
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: #34495e;
-      margin-bottom: 6px;
-    }
-
-    .badge-opcional {
-      font-weight: normal;
-      color: #95a5a6;
-      font-size: 0.78rem;
-    }
-
-    .form-group input, .form-group select, .form-group textarea {
-      padding: 10px 12px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      font-size: 0.95rem;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      background-color: #f8fafc;
-    }
-
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-      border-color: var(--primary);
-      background-color: #fff;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(10, 61, 98, 0.12);
-    }
-
-    /* Botões */
-    .actions-wrapper {
-      display: flex;
-      gap: 12px;
-      margin-top: 20px;
-    }
-
-    .btn {
-      padding: 10px 18px;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s ease;
-    }
-
-    .btn-lg { padding: 16px 28px; font-size: 1.1rem; }
-    .btn-sm { padding: 6px 12px; font-size: 0.78rem; }
-
-    .btn-primary { background-color: var(--primary); color: #fff; }
-    .btn-primary:hover { background-color: var(--primary-hover); }
-
-    .btn-outline { background-color: transparent; border: 1px solid var(--accent); color: var(--accent); }
-    .btn-outline:hover { background-color: #eaf2f8; }
-
-    .btn-secondary { background-color: #718093; color: #fff; }
-
-    .btn-success { background-color: var(--success); color: #fff; }
-    .btn-success:hover { background-color: var(--success-hover); }
-
-    .hidden { display: none !important; }
-
-    /* Grid de Docas */
-    .docas-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 14px;
-      margin-top: 15px;
-    }
-
-    .doca-card {
-      border-radius: 8px;
-      padding: 14px;
-      border: 2px solid var(--border-color);
-      background: #f8fafc;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 120px;
-    }
-
-    .doca-card.livre { border-color: #2ecc71; background-color: #f0fff4; }
-    .doca-card.ocupada { border-color: #3498db; background-color: #ebf5fb; }
-
-    .doca-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .doca-status-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-
-    .badge-livre { background: #2ecc71; color: #fff; }
-    .badge-ocupada { background: #3498db; color: #fff; }
-
-    .doca-info-vazio { font-size: 0.8rem; color: #95a5a6; font-style: italic; }
-    .doca-detalhes { font-size: 0.8rem; color: #34495e; margin-bottom: 10px; }
-
-    /* Tabelas */
-    .table-custom { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
-    .table-custom th, .table-custom td { padding: 10px 12px; border-bottom: 1px solid var(--border-color); }
-    .table-custom th { background-color: #f8fafc; color: #475569; font-weight: 600; }
-
-    /* Badges de Status */
-    .badge-status { padding: 4px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: bold; }
-    .status-CADASTRADO { background: #e2e8f0; color: #475569; }
-    .status-AGUARDANDO_CHAMADA { background: #fef3c7; color: #92400e; }
-    .status-CHAMADO { background: #fed7aa; color: #9a3412; }
-    .status-NA_DOCA { background: #dbeafe; color: #1e40af; }
-    .status-EM_OPERACAO { background: #e0e7ff; color: #3730a3; }
-    .status-FINALIZADO { background: #d1fae5; color: #065f46; }
-    .status-SAIDA_LIBERADA { background: #10b981; color: #ffffff; }
-
-    /* Dashboard Cards */
-    .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 15px; }
-    .stat-card { text-align: center; padding: 16px; margin-bottom: 0; }
-    .stat-number { font-size: 2rem; font-weight: bold; color: var(--primary); display: block; margin-top: 5px; }
-
-    /* Modal */
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 2000;
-    }
-    .modal-content { background: #fff; padding: 24px; border-radius: 12px; width: 100%; max-width: 420px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
-
-    /* Ticket e Alertas */
-    .qr-code-frame { display: flex; justify-content: center; margin: 15px 0; }
-    .ticket-info .info-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #eee; font-size: 0.88rem; }
-    .alert { padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem; }
-    .alert-danger { background-color: #f8d7da; color: #721c24; }
-    .alert-success { background-color: #d4edda; color: #155724; }
-
-    @media (max-width: 600px) {
-      .form-grid { grid-template-columns: 1fr; }
-      .nav-menu { flex-wrap: wrap; }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -292,7 +18,7 @@
   <header class="main-header" id="app-header">
     <div class="logo-container">
       <div class="system-logo-svg">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#0a3d62" width="28" height="28">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#0a3d62" width="24" height="24">
           <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
         </svg>
       </div>
@@ -303,12 +29,12 @@
     </div>
     
     <nav class="nav-menu" id="nav-menu">
-      <a href="#" onclick="navegarPara('aba-entrada')" class="nav-link active">Portaria / Entrada</a>
-      <a href="#" onclick="navegarPara('aba-checkin')" class="nav-link">Check-in Motorista</a>
-      <a href="#" onclick="navegarPara('aba-docas')" class="nav-link">Painel do Líder / Docas</a>
+      <a href="#" onclick="navegarPara('aba-entrada')" class="nav-link active">Portaria</a>
+      <a href="#" onclick="navegarPara('aba-checkin')" class="nav-link">Check-in</a>
+      <a href="#" onclick="navegarPara('aba-docas')" class="nav-link">Docas</a>
       <a href="#" onclick="navegarPara('aba-balanca')" class="nav-link">Balança Saída</a>
       <a href="#" onclick="navegarPara('aba-consulta')" class="nav-link">Consulta Status</a>
-      <a href="#" onclick="navegarPara('aba-admin')" class="nav-link">Painel Admin</a>
+      <a href="#" onclick="navegarPara('aba-admin')" class="nav-link">Admin</a>
       <button class="btn-logout" id="btn-logout">Sair</button>
     </nav>
   </header>
@@ -318,7 +44,7 @@
 
     <!-- 0. ABA: LOGIN DE USUÁRIO -->
     <div id="aba-login" class="aba-conteudo hidden">
-      <section class="card" style="max-width: 400px; margin: 40px auto;">
+      <section class="card" style="max-width: 400px; margin: 20px auto;">
         <div class="card-header" style="text-align: center;">
           <h2>Autenticação</h2>
           <p class="card-subtitle">Acesse o sistema para continuar</p>
@@ -375,7 +101,6 @@
               <input type="text" id="cpf-motorista" placeholder="000.000.000-00" maxlength="14" required class="input-cpf">
             </div>
 
-            <!-- CAMPOS: AJUDANTE -->
             <div class="form-group">
               <label for="nome-ajudante">NOME DO AJUDANTE <span class="badge-opcional">(Opcional)</span></label>
               <input type="text" id="nome-ajudante" placeholder="Nome completo do ajudante" class="input-capitalizar">
@@ -404,6 +129,12 @@
               </select>
             </div>
 
+            <!-- CAMPO ADICIONADO: OP -->
+            <div class="form-group">
+              <label for="numero-op">Nº DA OPERAÇÃO (OP) <span class="badge-opcional">(Opcional)</span></label>
+              <input type="text" id="numero-op" placeholder="Ex: OP-2026-99" class="input-capitalizar">
+            </div>
+
             <div class="form-group">
               <label for="numero-carga">Nº CARGA / PEDIDO / NF *</label>
               <input type="text" id="numero-carga" placeholder="Ex: CARGA-12345" required>
@@ -419,14 +150,14 @@
               <input type="text" id="cliente" placeholder="Ex: Cliente ABC" required class="input-capitalizar">
             </div>
 
-            <div class="form-group" style="grid-column: span 2;">
+            <div class="form-group full-width">
               <label for="observacao">OBSERVAÇÕES <span class="badge-opcional">(Opcional)</span></label>
               <textarea id="observacao" rows="2" placeholder="Observações relevantes..."></textarea>
             </div>
           </div>
 
           <div class="actions-wrapper">
-            <button type="submit" class="btn btn-primary">Registrar Entrada e Gerar Ticket</button>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Registrar Entrada e Gerar Ticket</button>
           </div>
         </form>
       </section>
@@ -445,7 +176,8 @@
 
           <div class="ticket-info">
             <div class="info-row"><span>ID ATENDIMENTO:</span> <strong id="ticket-id">--</strong></div>
-            <div class="info-row"><span>Nº OPERAÇÃO / CARGA:</span> <strong id="ticket-carga" style="color: #0a3d62;">--</strong></div>
+            <div class="info-row"><span>Nº OPERAÇÃO / OP:</span> <strong id="ticket-op" style="color: #0a3d62;">--</strong></div>
+            <div class="info-row"><span>Nº CARGA / NF:</span> <strong id="ticket-carga">--</strong></div>
             <div class="info-row"><span>PLACA:</span> <strong id="ticket-placa">--</strong></div>
             <div class="info-row"><span>MOTORISTA:</span> <strong id="ticket-motorista">--</strong></div>
             <div class="info-row"><span>AJUDANTE:</span> <strong id="ticket-ajudante">--</strong></div>
@@ -454,9 +186,9 @@
             <div class="info-row"><span>CADASTRO:</span> <strong id="ticket-data">--</strong></div>
           </div>
 
-          <div class="ticket-actions" style="margin-top: 15px; display: flex; gap: 10px;">
-            <button class="btn btn-primary" onclick="imprimirTicketEntrada()" style="flex: 1;">🖨️ Imprimir Ticket</button>
-            <button class="btn btn-outline" onclick="document.getElementById('area-ticket').classList.add('hidden')">Concluir</button>
+          <div class="ticket-actions" style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="imprimirTicketEntrada()" style="flex: 1; min-width: 140px;">🖨️ Imprimir Ticket</button>
+            <button class="btn btn-outline" onclick="document.getElementById('area-ticket').classList.add('hidden')" style="flex: 1; min-width: 100px;">Concluir</button>
           </div>
         </div>
       </section>
@@ -496,7 +228,7 @@
 
       <section class="card">
         <h2>Fila de Espera (Aguardando Chamada - FIFO)</h2>
-        <div style="overflow-x: auto; margin-top: 15px;">
+        <div class="table-responsive">
           <table class="table-custom">
             <thead>
               <tr>
@@ -520,7 +252,7 @@
       <section class="card">
         <h2>Escanear QR Code na Doca (Validação / Início / Finalização)</h2>
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <button class="btn btn-primary" onclick="habilitarScannerDoca()">📷 Leitor de QR Code na Doca</button>
+          <button class="btn btn-primary" onclick="habilitarScannerDoca()" style="width: 100%;">📷 Leitor de QR Code na Doca</button>
         </div>
         <div id="reader-doca" class="hidden" style="width: 100%; max-width: 400px; margin: 20px auto;"></div>
       </section>
@@ -548,9 +280,9 @@
           </select>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 10px;">
-          <button class="btn btn-secondary" onclick="fecharModalChamar()">Cancelar</button>
-          <button class="btn btn-success" onclick="confirmarChamadaDoca()">Confirmar Chamada</button>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+          <button class="btn btn-secondary" onclick="fecharModalChamar()" style="flex: 1;">Cancelar</button>
+          <button class="btn btn-success" onclick="confirmarChamadaDoca()" style="flex: 1;">Confirmar</button>
         </div>
       </div>
     </div>
@@ -559,9 +291,9 @@
     <div id="aba-balanca" class="aba-conteudo hidden">
       <section class="card">
         <h2>Localizar Atendimento para Pesagem e Liberação de Saída</h2>
-        <form id="form-buscar-balanca" style="display: flex; gap: 12px; margin-top: 12px;" onsubmit="event.preventDefault(); buscarAtendimentoBalanca();">
-          <input type="text" id="input-buscar-balanca" placeholder="Informe o ID ex: ATD-20260902-00001 ou Placa" style="flex: 1;" required>
-          <button type="submit" class="btn btn-primary">Buscar Veículo</button>
+        <form id="form-buscar-balanca" style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;" onsubmit="event.preventDefault(); buscarAtendimentoBalanca();">
+          <input type="text" id="input-buscar-balanca" placeholder="Informe o ID ex: ATD-20260902-00001 ou Placa" style="flex: 1; min-width: 200px;" required>
+          <button type="submit" class="btn btn-primary" style="min-width: 120px;">Buscar Veículo</button>
         </form>
       </section>
 
@@ -578,7 +310,7 @@
           <div class="info-row"><span>STATUS ATUAL:</span> <strong id="bal-status">--</strong></div>
         </div>
 
-        <button type="button" class="btn btn-success" style="width: 100%; font-size: 1.1rem;" onclick="confirmarSaidaBalança()">
+        <button type="button" class="btn btn-success" style="width: 100%; font-size: 1rem;" onclick="confirmarSaidaBalança()">
           🚚 CONFIRMAR SAÍDA E LIBERAR PORTARIA
         </button>
       </section>
@@ -591,9 +323,9 @@
           <h2>Consultar Status de Atendimento</h2>
           <p class="card-subtitle">Informe o ID do Atendimento ou a Placa para acompanhar a posição</p>
         </div>
-        <form id="form-consulta-status" style="display: flex; gap: 12px; margin-top: 12px;" onsubmit="event.preventDefault(); consultarStatusPublico();">
-          <input type="text" id="input-consulta-termo" placeholder="Ex: ATD-20260902-00001 ou ABC1D23" style="flex: 1;" required>
-          <button type="submit" class="btn btn-primary">Consultar</button>
+        <form id="form-consulta-status" style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;" onsubmit="event.preventDefault(); consultarStatusPublico();">
+          <input type="text" id="input-consulta-termo" placeholder="Ex: ATD-20260902-00001 ou ABC1D23" style="flex: 1; min-width: 200px;" required>
+          <button type="submit" class="btn btn-primary" style="min-width: 120px;">Consultar</button>
         </form>
       </section>
 
@@ -618,19 +350,19 @@
         <h2>Métricas Operacionais do Pátio</h2>
         <div class="dashboard-cards">
           <div class="card stat-card">
-            <h4>Aguardando Chamada</h4>
+            <h4>Aguardando</h4>
             <span id="stat-espera" class="stat-number">0</span>
           </div>
           <div class="card stat-card">
-            <h4>Chamados / A caminho</h4>
+            <h4>Chamados</h4>
             <span id="stat-chamados" class="stat-number" style="color: #e67e22;">0</span>
           </div>
           <div class="card stat-card">
-            <h4>Na Doca / Em Operação</h4>
+            <h4>Na Doca</h4>
             <span id="stat-doca" class="stat-number" style="color: var(--accent);">0</span>
           </div>
           <div class="card stat-card">
-            <h4>Finalizados / Liberados</h4>
+            <h4>Finalizados</h4>
             <span id="stat-finalizados" class="stat-number" style="color: var(--success);">0</span>
           </div>
         </div>
@@ -639,19 +371,22 @@
       <section class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
           <h2>Volume de Operações</h2>
-          <select id="tipo-grafico-select" onchange="carregarHistoricoAtendimentos()" style="padding: 6px 12px; font-weight: 600;">
+          <select id="tipo-grafico-select" style="padding: 6px 12px; font-weight: 600;">
             <option value="bar">📊 Gráfico de Barras</option>
             <option value="line">📈 Gráfico de Linha</option>
           </select>
         </div>
-        <div style="max-height: 280px; position: relative;">
+        <div style="height: 250px; position: relative; width: 100%;">
           <canvas id="graficoOperacoes"></canvas>
         </div>
       </section>
 
       <section class="card">
-        <h2>Histórico Geral de Atendimentos</h2>
-        <div style="overflow-x: auto; margin-top: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+          <h2>Histórico Geral de Atendimentos</h2>
+          <input type="text" id="input-busca-admin" placeholder="🔍 Filtrar por ID, Placa, Motorista..." style="padding: 6px 12px; font-size: 0.85rem; width: 250px;">
+        </div>
+        <div class="table-responsive">
           <table class="table-custom">
             <thead>
               <tr>
@@ -675,620 +410,10 @@
 
   </main>
 
-  <!-- LÓGICA INTEGRADOR FIREBASE (MÓDULO ES6) -->
-  <script type="module">
-    import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { 
-      getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where, serverTimestamp, onSnapshot 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { 
-      getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-    // Configuração do Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyBXGqn85J6RDkpNCr-_z31MM4LPhROg6zI",
-      authDomain: "projetotransportadora-828a3.firebaseapp.com",
-      projectId: "projetotransportadora-828a3",
-      storageBucket: "projetotransportadora-828a3.firebasestorage.app",
-      messagingSenderId: "845742289661",
-      appId: "1:845742289661:web:8a834f453215330560c494"
-    };
-
-    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-
-    const COLECAO_ATENDIMENTOS = "atendimentos";
-
-    let atendimentoAtualId = null;
-    let html5QrScanner = null;
-    let meuGrafico = null;
-    let usuarioLogado = null;
-    let unsubscribeFila = null;
-
-    // Máscaras e Utilitários
-    function aplicarCapitalizacao(texto) {
-      return texto.toLowerCase().split(' ').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
-    }
-
-    function aplicarMascaraCPF(valor) {
-      return valor.replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2').substring(0, 14);
-    }
-
-    document.addEventListener('input', (e) => {
-      if (e.target.classList.contains('input-capitalizar')) {
-        const pos = e.target.selectionStart;
-        e.target.value = aplicarCapitalizacao(e.target.value);
-        e.target.setSelectionRange(pos, pos);
-      }
-      if (e.target.classList.contains('input-cpf')) {
-        e.target.value = aplicarMascaraCPF(e.target.value);
-      }
-    });
-
-    function formatDateTime(timestamp) {
-      if (!timestamp) return "--/--/---- --:--";
-      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-      return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-    }
-
-    function formatTimeOnly(timestamp) {
-      if (!timestamp) return "--:--";
-      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-      return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-    }
-
-    function gerarAtendimentoId() {
-      const d = new Date();
-      const dataFormatada = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
-      const aleatorio = String(Math.floor(Math.random() * 90000) + 10000);
-      return `ATD-${dataFormatada}-${aleatorio}`;
-    }
-
-    // Navegação SPA
-    window.navegarPara = function(idAba) {
-      document.querySelectorAll('.aba-conteudo').forEach(el => el.classList.add('hidden'));
-      document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-
-      const abaAlvo = document.getElementById(idAba);
-      if (abaAlvo) abaAlvo.classList.remove('hidden');
-
-      const linkAtivo = Array.from(document.querySelectorAll('.nav-link')).find(a => a.getAttribute('onclick')?.includes(idAba));
-      if (linkAtivo) linkAtivo.classList.add('active');
-
-      window.pararCamera();
-
-      if (idAba === 'aba-docas') {
-        iniciarEscutaFilaETempoReal();
-      } else if (idAba === 'aba-admin') {
-        carregarHistoricoAtendimentos();
-      }
-    };
-
-    // Autenticação
-    onAuthStateChanged(auth, (user) => {
-      usuarioLogado = user;
-      if (!user) {
-        document.getElementById('nav-menu').style.display = 'none';
-        window.navegarPara('aba-login');
-      } else {
-        document.getElementById('nav-menu').style.display = 'flex';
-        if (!document.getElementById('aba-login').classList.contains('hidden')) {
-          window.navegarPara('aba-entrada');
-        }
-      }
-    });
-
-    window.fazerLogin = function(email, senha) {
-      signInWithEmailAndPassword(auth, email, senha)
-        .then(() => window.navegarPara('aba-entrada'))
-        .catch((erro) => alert("Falha na autenticação: " + erro.message));
-    };
-
-    document.getElementById('btn-logout')?.addEventListener('click', () => {
-      signOut(auth).then(() => window.navegarPara('aba-login'));
-    });
-
-    // 1. Entrada de Veículos
-    window.salvarEntrada = async function() {
-      const placa = document.getElementById('placa-veiculo')?.value.toUpperCase().trim();
-      const tipoVeiculo = document.getElementById('tipo-veiculo')?.value;
-      const motorista = document.getElementById('nome-motorista')?.value.trim();
-      const documentoMotorista = document.getElementById('cpf-motorista')?.value.trim();
-      const ajudante = document.getElementById('nome-ajudante')?.value.trim();
-      const documentoAjudante = document.getElementById('cpf-ajudante')?.value.trim();
-      const telefone = document.getElementById('telefone-motorista')?.value.trim();
-      const tipoOperacao = document.getElementById('tipo-operacao')?.value;
-      const numeroCarga = document.getElementById('numero-carga')?.value.trim();
-      const transportadora = document.getElementById('transportadora')?.value.trim();
-      const cliente = document.getElementById('cliente')?.value.trim();
-      const observacao = document.getElementById('observacao')?.value.trim();
-
-      if (!placa || !tipoVeiculo || !motorista || !documentoMotorista || !telefone || !numeroCarga || !transportadora || !cliente) {
-        alert("Preencha todos os campos obrigatórios marcados com *.");
-        return;
-      }
-
-      const idPersonalizado = gerarAtendimentoId();
-      const agora = new Date();
-
-      const dadosAtendimento = {
-        atendimentoId: idPersonalizado,
-        placa, tipoVeiculo, motorista, documentoMotorista, 
-        ajudante: ajudante || "", documentoAjudante: documentoAjudante || "",
-        telefone, transportadora, tipoOperacao, numeroCarga, cliente,
-        observacao: observacao || "",
-        dataCadastro: agora.toISOString().slice(0, 10),
-        horarioCadastro: formatTimeOnly(agora),
-        horarioCheckin: null, horarioChamada: null, horarioChegadaDoca: null,
-        horarioInicioOperacao: null, horarioFinalizacao: null, horarioSaida: null,
-        doca: null, status: "CADASTRADO", usuarioChamada: null,
-        criadoEm: serverTimestamp(), atualizadoEm: serverTimestamp()
-      };
-
-      try {
-        await addDoc(collection(db, COLECAO_ATENDIMENTOS), dadosAtendimento);
-
-        document.getElementById('ticket-id').innerText = idPersonalizado;
-        document.getElementById('ticket-placa').innerText = placa;
-        document.getElementById('ticket-motorista').innerText = motorista;
-        document.getElementById('ticket-ajudante').innerText = ajudante ? `${ajudante} (${documentoAjudante})` : 'Nenhum';
-        document.getElementById('ticket-operacao').innerText = tipoOperacao;
-        document.getElementById('ticket-carga').innerText = numeroCarga;
-        document.getElementById('ticket-data').innerText = `${dadosAtendimento.dataCadastro} ${dadosAtendimento.horarioCadastro}`;
-
-        const qrPayload = `https://projetotransportadora-828a3.web.app/checkin?id=${idPersonalizado}`;
-        const qrContainer = document.getElementById('qrcode-container');
-        if (qrContainer) {
-          qrContainer.innerHTML = "";
-          if (typeof QRCode !== "undefined") new QRCode(qrContainer, { text: qrPayload, width: 160, height: 160 });
-        }
-
-        document.getElementById('area-ticket')?.classList.remove('hidden');
-        document.getElementById('form-entrada')?.reset();
-      } catch (erro) {
-        alert("Erro ao gravar cadastro no Firebase.");
-      }
-    };
-
-    window.imprimirTicketEntrada = function() {
-      const ticketElement = document.getElementById('area-ticket');
-      if (!ticketElement) return;
-
-      const win = window.open('', '_blank', 'width=400,height=600');
-      win.document.write(`
-        <html><head><title>Ticket - Transportadora Paulão</title><style>body { font-family: monospace; text-align: center; padding: 20px; }</style></head>
-        <body>${ticketElement.innerHTML}<script>window.onload = function() { window.print(); window.close(); };<\/script></body></html>
-      `);
-      win.document.close();
-    };
-
-    // 2. Check-in do Motorista
-    window.habilitarScannerCheckin = function() {
-      window.iniciarCamera("reader-checkin", async (qrMessage) => {
-        await window.pararCamera();
-        processarCheckinQRCode(qrMessage);
-      });
-    };
-
-    async function processarCheckinQRCode(qrValue) {
-      const alertBox = document.getElementById("checkin-alert");
-      try {
-        let atendimentoId = qrValue.includes("id=") ? qrValue.split("id=")[1] : qrValue;
-        const q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", atendimentoId));
-        const snap = await getDocs(q);
-
-        if (snap.empty) throw new Error("Atendimento não encontrado no sistema.");
-
-        const docSnap = snap.docs[0];
-        const data = docSnap.data();
-
-        if (data.status !== "CADASTRADO") throw new Error(`Este atendimento já está no status: ${data.status}`);
-
-        await updateDoc(doc(db, COLECAO_ATENDIMENTOS, docSnap.id), {
-          status: "AGUARDANDO_CHAMADA",
-          horarioCheckin: serverTimestamp(),
-          atualizadoEm: serverTimestamp()
-        });
-
-        document.getElementById('checkin-resumo-id').innerText = data.atendimentoId;
-        document.getElementById('checkin-resumo-placa').innerText = data.placa;
-        document.getElementById('checkin-resumo-motorista').innerText = data.motorista;
-
-        document.getElementById('card-confirmacao-checkin')?.classList.remove('hidden');
-        if (alertBox) alertBox.classList.add('hidden');
-      } catch (err) {
-        if (alertBox) {
-          alertBox.textContent = err.message;
-          alertBox.className = "alert alert-danger";
-          alertBox.classList.remove("hidden");
-        }
-      }
-    }
-
-    // 3. Painel do Líder e Docas
-    function iniciarEscutaFilaETempoReal() {
-      if (unsubscribeFila) unsubscribeFila();
-
-      const q = query(collection(db, COLECAO_ATENDIMENTOS));
-      unsubscribeFila = onSnapshot(q, (snapshot) => {
-        const todosAtendimentos = [];
-        snapshot.forEach(docSnap => todosAtendimentos.push({ idFirestore: docSnap.id, ...docSnap.data() }));
-
-        renderizarGridDocas(todosAtendimentos);
-        renderizarFilaEspera(todosAtendimentos);
-      });
-    }
-
-    function renderizarGridDocas(lista) {
-      const gridContainer = document.getElementById('container-docas-grid');
-      if (!gridContainer) return;
-
-      gridContainer.innerHTML = "";
-      const docas = ["Doca 01", "Doca 02", "Doca 03", "Doca 04", "Doca 05", "Doca 06", "Doca 07", "Doca 08", "Doca 09", "Doca 10"];
-
-      docas.forEach(nomeDoca => {
-        const ocupante = lista.find(item => item.doca === nomeDoca && ["CHAMADO", "A_CAMINHO_DA_DOCA", "NA_DOCA", "EM_OPERACAO"].includes(item.status));
-
-        const card = document.createElement('div');
-        card.className = `doca-card ${ocupante ? 'ocupada' : 'livre'}`;
-
-        if (!ocupante) {
-          card.innerHTML = `
-            <div class="doca-header"><strong>${nomeDoca}</strong><span class="doca-status-badge badge-livre">LIVRE</span></div>
-            <p class="doca-info-vazio">Nenhum veículo alocado</p>
-          `;
-        } else {
-          card.innerHTML = `
-            <div class="doca-header"><strong>${nomeDoca}</strong><span class="doca-status-badge badge-ocupada">${ocupante.status}</span></div>
-            <div class="doca-detalhes">
-              <div><strong>Placa:</strong> ${ocupante.placa}</div>
-              <div><strong>Motorista:</strong> ${ocupante.motorista}</div>
-              <div><strong>Operação:</strong> ${ocupante.tipoOperacao}</div>
-            </div>
-            <div class="doca-acoes">
-              ${ocupante.status === 'NA_DOCA' ? `<button class="btn btn-primary btn-sm" onclick="iniciarOperacaoDoca('${ocupante.idFirestore}')">Iniciar Operação</button>` : ''}
-              ${ocupante.status === 'EM_OPERACAO' ? `<button class="btn btn-success btn-sm" onclick="finalizarOperacaoDoca('${ocupante.idFirestore}')">Finalizar Doca</button>` : ''}
-            </div>
-          `;
-        }
-        gridContainer.appendChild(card);
-      });
-    }
-
-    function renderizarFilaEspera(lista) {
-      const tbody = document.getElementById('tbody-fila-espera');
-      if (!tbody) return;
-
-      tbody.innerHTML = "";
-      const fila = lista.filter(item => item.status === "AGUARDANDO_CHAMADA");
-
-      if (fila.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Nenhum veículo aguardando no pátio.</td></tr>`;
-        return;
-      }
-
-      fila.forEach((item, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><strong>#${index + 1}</strong></td>
-          <td>${formatDateTime(item.horarioCheckin)}</td>
-          <td>${item.atendimentoId}</td>
-          <td><strong>${item.placa}</strong></td>
-          <td>${item.motorista}</td>
-          <td>${item.tipoOperacao}</td>
-          <td>${item.transportadora}</td>
-          <td><button class="btn btn-primary btn-sm" onclick="abrirModalChamar('${item.idFirestore}', '${item.placa}')">📢 CHAMAR VEÍCULO</button></td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    window.abrirModalChamar = function(idFirestore, placa) {
-      atendimentoAtualId = idFirestore;
-      document.getElementById('modal-placa').innerText = placa;
-      document.getElementById('modal-chamar-doca').classList.remove('hidden');
-    };
-
-    window.fecharModalChamar = function() {
-      atendimentoAtualId = null;
-      document.getElementById('modal-chamar-doca').classList.add('hidden');
-    };
-
-    window.confirmarChamadaDoca = async function() {
-      if (!atendimentoAtualId) return;
-      const docaSelecionada = document.getElementById('select-doca-chamar').value;
-
-      try {
-        await updateDoc(doc(db, COLECAO_ATENDIMENTOS, atendimentoAtualId), {
-          doca: docaSelecionada,
-          status: "CHAMADO",
-          usuarioChamada: usuarioLogado?.email || "Líder de Pátio",
-          horarioChamada: serverTimestamp(),
-          atualizadoEm: serverTimestamp()
-        });
-
-        alert(`Veículo chamado para a ${docaSelecionada}!`);
-        fecharModalChamar();
-      } catch (err) {
-        alert("Erro ao realizar chamada para doca.");
-      }
-    };
-
-    window.iniciarOperacaoDoca = async function(idFirestore) {
-      try {
-        await updateDoc(doc(db, COLECAO_ATENDIMENTOS, idFirestore), {
-          status: "EM_OPERACAO",
-          horarioInicioOperacao: serverTimestamp(),
-          atualizadoEm: serverTimestamp()
-        });
-      } catch (err) { alert("Erro ao iniciar operação."); }
-    };
-
-    window.finalizarOperacaoDoca = async function(idFirestore) {
-      try {
-        await updateDoc(doc(db, COLECAO_ATENDIMENTOS, idFirestore), {
-          status: "FINALIZADO",
-          horarioFinalizacao: serverTimestamp(),
-          atualizadoEm: serverTimestamp()
-        });
-      } catch (err) { alert("Erro ao finalizar doca."); }
-    };
-
-    window.habilitarScannerDoca = function() {
-      window.iniciarCamera("reader-doca", async (qrMessage) => {
-        await window.pararCamera();
-        let atendimentoId = qrMessage.includes("id=") ? qrMessage.split("id=")[1] : qrMessage;
-
-        const q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", atendimentoId));
-        const snap = await getDocs(q);
-
-        if (snap.empty) return alert("Atendimento não encontrado.");
-        const docSnap = snap.docs[0];
-        const data = docSnap.data();
-
-        if (data.status === "CHAMADO" || data.status === "A_CAMINHO_DA_DOCA") {
-          await updateDoc(doc(db, COLECAO_ATENDIMENTOS, docSnap.id), {
-            status: "NA_DOCA",
-            horarioChegadaDoca: serverTimestamp(),
-            atualizadoEm: serverTimestamp()
-          });
-          alert(`Veículo confirmado na ${data.doca}! Status alterado para NA_DOCA.`);
-        } else if (data.status === "NA_DOCA") {
-          window.iniciarOperacaoDoca(docSnap.id);
-        } else if (data.status === "EM_OPERACAO") {
-          window.finalizarOperacaoDoca(docSnap.id);
-        }
-      });
-    };
-
-    // 4. Balança e Saída
-    window.buscarAtendimentoBalanca = async function() {
-      const termo = document.getElementById('input-buscar-balanca')?.value.trim();
-      if (!termo) return alert("Digite o ID ou Placa.");
-
-      try {
-        let q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", termo));
-        let snap = await getDocs(q);
-
-        if (snap.empty) {
-          q = query(collection(db, COLECAO_ATENDIMENTOS), where("placa", "==", termo.toUpperCase()));
-          snap = await getDocs(q);
-        }
-
-        if (snap.empty) return alert("Nenhum atendimento localizado.");
-
-        const docSnap = snap.docs[0];
-        const data = docSnap.data();
-
-        atendimentoAtualId = docSnap.id;
-
-        document.getElementById('bal-id').innerText = data.atendimentoId;
-        document.getElementById('bal-placa').innerText = data.placa;
-        document.getElementById('bal-motorista').innerText = data.motorista;
-        document.getElementById('bal-ajudante').innerText = data.ajudante ? `${data.ajudante} (${data.documentoAjudante})` : 'Nenhum';
-        document.getElementById('bal-operacao').innerText = data.tipoOperacao;
-        document.getElementById('bal-doca').innerText = data.doca || 'N/A';
-        document.getElementById('bal-status').innerText = data.status;
-
-        document.getElementById('secao-liberacao-saida')?.classList.remove('hidden');
-      } catch (err) { alert("Erro na busca."); }
-    };
-
-    window.confirmarSaidaBalança = async function() {
-      if (!atendimentoAtualId) return;
-
-      try {
-        await updateDoc(doc(db, COLECAO_ATENDIMENTOS, atendimentoAtualId), {
-          status: "SAIDA_LIBERADA",
-          horarioSaida: serverTimestamp(),
-          atualizadoEm: serverTimestamp()
-        });
-
-        alert("Saída liberada com sucesso!");
-        document.getElementById('secao-liberacao-saida')?.classList.add('hidden');
-        document.getElementById('form-buscar-balanca')?.reset();
-        atendimentoAtualId = null;
-      } catch (err) { alert("Erro ao gravar saída."); }
-    };
-
-    // 4.1. Consulta Pública de Status
-    window.consultarStatusPublico = async function() {
-      const termo = document.getElementById('input-consulta-termo')?.value.trim();
-      if (!termo) return alert("Informe o ID ou a Placa.");
-
-      try {
-        let q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", termo));
-        let snap = await getDocs(q);
-
-        if (snap.empty) {
-          q = query(collection(db, COLECAO_ATENDIMENTOS), where("placa", "==", termo.toUpperCase()));
-          snap = await getDocs(q);
-        }
-
-        if (snap.empty) return alert("Nenhum registro encontrado.");
-
-        const data = snap.docs[0].data();
-
-        document.getElementById('cons-id').innerText = data.atendimentoId;
-        document.getElementById('cons-placa').innerText = data.placa;
-        document.getElementById('cons-motorista').innerText = data.motorista;
-        document.getElementById('cons-ajudante').innerText = data.ajudante ? `${data.ajudante} (${data.documentoAjudante})` : 'Nenhum';
-        document.getElementById('cons-operacao').innerText = data.tipoOperacao;
-        document.getElementById('cons-doca').innerText = data.doca || 'Pátio / Não Alocado';
-        document.getElementById('cons-status').innerText = data.status;
-        document.getElementById('cons-data').innerText = formatDateTime(data.atualizadoEm || data.criadoEm);
-
-        document.getElementById('secao-resultado-consulta')?.classList.remove('hidden');
-      } catch (err) { alert("Erro ao consultar status."); }
-    };
-
-    // 5. Admin e Dashboard
-    window.carregarHistoricoAtendimentos = async function() {
-      try {
-        const snap = await getDocs(collection(db, COLECAO_ATENDIMENTOS));
-        const lista = [];
-        snap.forEach(d => lista.push({ idFirestore: d.id, ...d.data() }));
-
-        renderizarDashboardEAdmin(lista);
-      } catch (err) { console.error(err); }
-    };
-
-    function renderizarDashboardEAdmin(lista) {
-      let espera = 0, chamados = 0, doca = 0, finalizados = 0;
-      let contagemOperacoes = {};
-
-      const tbody = document.getElementById('tbody-historico');
-      if (tbody) tbody.innerHTML = "";
-
-      lista.forEach(item => {
-        if (item.status === "AGUARDANDO_CHAMADA") espera++;
-        if (["CHAMADO", "A_CAMINHO_DA_DOCA"].includes(item.status)) chamados++;
-        if (["NA_DOCA", "EM_OPERACAO"].includes(item.status)) doca++;
-        if (["FINALIZADO", "SAIDA_LIBERADA"].includes(item.status)) finalizados++;
-
-        contagemOperacoes[item.tipoOperacao] = (contagemOperacoes[item.tipoOperacao] || 0) + 1;
-
-        if (tbody) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td><strong>${item.atendimentoId}</strong></td>
-            <td>${item.placa}</td>
-            <td>${item.motorista}</td>
-            <td>${item.tipoOperacao}</td>
-            <td>${item.doca || '-'}</td>
-            <td>${item.dataCadastro} ${item.horarioCadastro}</td>
-            <td><span class="badge-status status-${item.status}">${item.status}</span></td>
-            <td style="text-align: center;"><button class="btn btn-outline btn-sm" onclick="imprimirAuditoriaAtendimento('${item.idFirestore}')">🖨️ Detalhes</button></td>
-          `;
-          tbody.appendChild(tr);
-        }
-      });
-
-      document.getElementById('stat-espera').innerText = espera;
-      document.getElementById('stat-chamados').innerText = chamados;
-      document.getElementById('stat-doca').innerText = doca;
-      document.getElementById('stat-finalizados').innerText = finalizados;
-
-      renderizarGraficoAdmin(contagemOperacoes);
-    }
-
-    window.imprimirAuditoriaAtendimento = async function(idFirestore) {
-      try {
-        const docRef = doc(db, COLECAO_ATENDIMENTOS, idFirestore);
-        const docSnap = await getDoc(docRef);
-
-        if (!docSnap.exists()) {
-          alert("Atendimento não localizado.");
-          return;
-        }
-
-        const data = docSnap.data();
-        const win = window.open('', '_blank', 'width=600,height=700');
-        win.document.write(`
-          <html>
-            <head>
-              <title>Auditoria - ${data.atendimentoId}</title>
-              <style>
-                body { font-family: Arial, sans-serif; padding: 20px; color: #2c3e50; }
-                h2 { color: #0a3d62; border-bottom: 2px solid #0a3d62; padding-bottom: 8px; }
-                .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px #eee dashed; }
-                .label { font-weight: bold; }
-              </style>
-            </head>
-            <body>
-              <h2>TRANSPORTADORA PAULÃO - RELATÓRIO DE AUDITORIA</h2>
-              <div class="row"><span class="label">ID Atendimento:</span><span>${data.atendimentoId}</span></div>
-              <div class="row"><span class="label">Placa:</span><span>${data.placa}</span></div>
-              <div class="row"><span class="label">Motorista:</span><span>${data.motorista} (${data.documentoMotorista})</span></div>
-              <div class="row"><span class="label">Ajudante:</span><span>${data.ajudante ? `${data.ajudante} (${data.documentoAjudante})` : 'Nenhum'}</span></div>
-              <div class="row"><span class="label">Telefone:</span><span>${data.telefone}</span></div>
-              <div class="row"><span class="label">Tipo Veículo:</span><span>${data.tipoVeiculo}</span></div>
-              <div class="row"><span class="label">Operação:</span><span>${data.tipoOperacao}</span></div>
-              <div class="row"><span class="label">Nº Carga / NF:</span><span>${data.numeroCarga}</span></div>
-              <div class="row"><span class="label">Transportadora:</span><span>${data.transportadora}</span></div>
-              <div class="row"><span class="label">Cliente:</span><span>${data.cliente}</span></div>
-              <div class="row"><span class="label">Doca Alocada:</span><span>${data.doca || 'N/A'}</span></div>
-              <div class="row"><span class="label">Status Atual:</span><span>${data.status}</span></div>
-              <div class="row"><span class="label">Cadastro:</span><span>${data.dataCadastro} às ${data.horarioCadastro}</span></div>
-              <div class="row"><span class="label">Horário Check-in:</span><span>${formatDateTime(data.horarioCheckin)}</span></div>
-              <div class="row"><span class="label">Horário Chamada:</span><span>${formatDateTime(data.horarioChamada)}</span></div>
-              <div class="row"><span class="label">Horário Entrada Doca:</span><span>${formatDateTime(data.horarioChegadaDoca)}</span></div>
-              <div class="row"><span class="label">Início Operação:</span><span>${formatDateTime(data.horarioInicioOperacao)}</span></div>
-              <div class="row"><span class="label">Fim Operação:</span><span>${formatDateTime(data.horarioFinalizacao)}</span></div>
-              <div class="row"><span class="label">Horário Saída:</span><span>${formatDateTime(data.horarioSaida)}</span></div>
-              <div class="row"><span class="label">Observações:</span><span>${data.observacao || 'Nenhuma'}</span></div>
-              <script>window.onload = function() { window.print(); };<\/script>
-            </body>
-          </html>
-        `);
-        win.document.close();
-      } catch (err) {
-        alert("Erro ao gerar relatório de detalhes: " + err.message);
-      }
-    };
-
-    function renderizarGraficoAdmin(dados) {
-      const ctx = document.getElementById('graficoOperacoes')?.getContext('2d');
-      if (!ctx) return;
-
-      if (meuGrafico) meuGrafico.destroy();
-
-      meuGrafico = new Chart(ctx, {
-        type: document.getElementById('tipo-grafico-select')?.value || 'bar',
-        data: {
-          labels: Object.keys(dados),
-          datasets: [{ label: 'Quantidade por Operação', data: Object.values(dados), backgroundColor: '#0a3d62' }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-      });
-    }
-
-    // Leitor de Câmera
-    window.iniciarCamera = async function(elementId, callbackSucesso) {
-      window.pararCamera();
-      const element = document.getElementById(elementId);
-      if (element) element.classList.remove("hidden");
-
-      try {
-        html5QrScanner = new Html5Qrcode(elementId);
-        await html5QrScanner.start(
-          { facingMode: { ideal: "environment" } },
-          { fps: 10, qrbox: { width: 250, height: 250 } },
-          callbackSucesso,
-          () => {}
-        );
-      } catch (err) { alert("Erro ao iniciar câmera: " + err.message); }
-    };
-
-    window.pararCamera = async function() {
-      if (html5QrScanner) {
-        try { await html5QrScanner.stop(); } catch (e) {}
-        html5QrScanner.clear();
-        html5QrScanner = null;
-      }
-    };
-  </script>
+  <footer class="app-footer">
+    Desenvolvido por Renata A.S. com auxílio de Gemini AI &copy; 2026 Transportadora Paulão
+  </footer>
+
+  <script type="module" src="script.js"></script>
 </body>
 </html>
