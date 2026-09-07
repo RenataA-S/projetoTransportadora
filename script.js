@@ -52,6 +52,26 @@ function aplicarMascaraCPF(valor) {
   return valor.replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2').substring(0, 14);
 }
 
+// FORMATAR E ABRIR WHATSAPP
+window.formatarNumeroWhatsApp = function(telefone) {
+  if (!telefone) return "";
+  let num = telefone.replace(/\D/g, "");
+  if (num.length === 10 || num.length === 11) {
+    num = "55" + num;
+  }
+  return num;
+};
+
+window.abrirWhatsApp = function(telefone, mensagem) {
+  const numLimpo = window.formatarNumeroWhatsApp(telefone);
+  if (!numLimpo) {
+    alert("Número de telefone/WhatsApp inválido.");
+    return;
+  }
+  const url = `https://api.whatsapp.com/send?phone=${numLimpo}&text=${encodeURIComponent(mensagem)}`;
+  window.open(url, '_blank');
+};
+
 document.addEventListener('input', (e) => {
   if (e.target.classList.contains('input-capitalizar')) {
     const pos = e.target.selectionStart;
@@ -193,7 +213,7 @@ window.salvarEntrada = async function() {
         horarioCadastro: formatTimeOnly(agora),
         horarioCheckin: null, horarioChamada: null, horarioChegadaDoca: null,
         horarioInicioOperacao: null, horarioFinalizacao: null, horarioSaida: null,
-        doca: null, status: "CADASTRADO", usuarioChamada: null,
+        doca: null, status: "CADASTRADO", pesoToneladas: null, usuarioChamada: null,
         criadoEm: serverTimestamp(), atualizadoEm: serverTimestamp()
       };
 
@@ -204,6 +224,7 @@ window.salvarEntrada = async function() {
     document.getElementById('ticket-op').innerText = numeroOp;
     document.getElementById('ticket-placa').innerText = placa;
     document.getElementById('ticket-motorista').innerText = motorista;
+    document.getElementById('ticket-telefone').innerText = telefone;
     document.getElementById('ticket-ajudante').innerText = ajudante ? `${ajudante} (${documentoAjudante})` : 'Nenhum';
     document.getElementById('ticket-operacao').innerText = tipoOperacao;
     document.getElementById('ticket-carga').innerText = numeroCarga;
@@ -222,6 +243,23 @@ window.salvarEntrada = async function() {
     console.error(erro);
     alert("Erro ao salvar cadastro: " + erro.message);
   }
+};
+
+window.enviarWhatsAppTicket = function() {
+  const id = document.getElementById('ticket-id')?.innerText;
+  const motorista = document.getElementById('ticket-motorista')?.innerText;
+  const placa = document.getElementById('ticket-placa')?.innerText;
+  const telefone = document.getElementById('ticket-telefone')?.innerText;
+  const operacao = document.getElementById('ticket-operacao')?.innerText;
+
+  if (!telefone || telefone === '--') {
+    alert("Telefone do motorista não encontrado.");
+    return;
+  }
+
+  const msg = `Olá *${motorista}*!\n\nSeu cadastro de entrada na *Transportadora* foi realizado com sucesso.\n\n📌 *ID:* ${id}\n🚚 *Placa:* ${placa}\n📋 *Operação:* ${operacao}\n\nAcompanhe seu status pelo link:\nhttps://projetotransportadora-828a3.web.app/`;
+  
+  window.abrirWhatsApp(telefone, msg);
 };
 
 window.buscarCadastroParaEdicao = async function() {
@@ -293,7 +331,7 @@ window.imprimirTicketEntrada = function() {
 
   const win = window.open('', '_blank', 'width=400,height=600');
   win.document.write(`
-    <html><head><title>Ticket - Transportadora Paulão</title><style>body { font-family: monospace; text-align: center; padding: 20px; }</style></head>
+    <html><head><title>Ticket - Transportadora</title><style>body { font-family: monospace; text-align: center; padding: 20px; }</style></head>
     <body>${ticketElement.innerHTML}<script>window.onload = function() { window.print(); window.close(); };<\/script></body></html>
   `);
   win.document.close();
@@ -337,20 +375,34 @@ window.habilitarScannerCheckin = function() {
   });
 };
 
+window.buscarCheckinPorTermo = async function() {
+  const termo = document.getElementById('input-busca-checkin')?.value.trim();
+  if (!termo) return alert("Digite o ID ou a Placa.");
+
+  await processarCheckinQRCode(termo);
+};
+
+// Processamento de Check-in
 async function processarCheckinQRCode(qrValue) {
   const alertBox = document.getElementById("checkin-alert");
+
   try {
     const atendimentoId = extrairCodigoQRCode(qrValue);
-    const q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", atendimentoId));
-    const snap = await getDocs(q);
+    let q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", atendimentoId));
+    let snap = await getDocs(q);
 
-    if (snap.empty) throw new Error(`Atendimento (${atendimentoId}) não encontrado.`);
+    if (snap.empty) {
+      q = query(collection(db, COLECAO_ATENDIMENTOS), where("placa", "==", atendimentoId.toUpperCase()));
+      snap = await getDocs(q);
+    }
 
-    const docSnap = snap.docs[0];
+    if (snap.empty) throw new Error(`Atendimento/Placa (${atendimentoId}) não encontrado.`);
+
+    const docSnap = snap.docs[snap.docs.length - 1];
     const data = docSnap.data();
 
     let novoStatus = data.status;
-    if (data.status === "CADASTRADO") {
+    if (data.status === "CADASTRADO" || data.status === "AGUARDANDO_CHAMADA") {
       novoStatus = "AGUARDANDO_CHAMADA";
       await updateDoc(doc(db, COLECAO_ATENDIMENTOS, docSnap.id), {
         status: novoStatus,
@@ -380,8 +432,13 @@ window.habilitarScannerDoca = function() {
     await window.pararCamera();
     const atendimentoId = extrairCodigoQRCode(qrMessage);
 
-    const q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", atendimentoId));
-    const snap = await getDocs(q);
+    let q = query(collection(db, COLECAO_ATENDIMENTOS), where("atendimentoId", "==", atendimentoId));
+    let snap = await getDocs(q);
+
+    if (snap.empty) {
+      q = query(collection(db, COLECAO_ATENDIMENTOS), where("placa", "==", atendimentoId.toUpperCase()));
+      snap = await getDocs(q);
+    }
 
     if (snap.empty) return alert(`Atendimento (${atendimentoId}) não encontrado.`);
 
@@ -407,7 +464,7 @@ window.habilitarScannerDoca = function() {
   });
 };
 
-// 7. DOCAS & FILA EM TEMPO REAL
+// 7. DOCAS & FILA EM TEMPO REAL (GRADE 5x4 - TOTAL: 20 DOCAS)
 function iniciarEscutaFilaETempoReal() {
   if (unsubscribeFila) unsubscribeFila();
 
@@ -426,9 +483,14 @@ function renderizarGridDocas(lista) {
   if (!gridContainer) return;
 
   gridContainer.innerHTML = "";
-  const docas = ["Doca 01", "Doca 02", "Doca 03", "Doca 04", "Doca 05", "Doca 06", "Doca 07", "Doca 08", "Doca 09", "Doca 10"];
 
-  docas.forEach(nomeDoca => {
+  // 20 DOCAS (GRADE 5x4)
+  const docas = [];
+  for (let i = 1; i <= 20; i++) {
+    docas.push(`Doca ${String(i).padStart(2, '0')}`);
+  }
+
+  docas.forEach((nomeDoca) => {
     const ocupante = lista.find(item => item.doca === nomeDoca && ["CHAMADO", "A_CAMINHO_DA_DOCA", "NA_DOCA", "EM_OPERACAO"].includes(item.status));
 
     const card = document.createElement('div');
@@ -465,7 +527,7 @@ function renderizarFilaEspera(lista) {
   const fila = lista.filter(item => item.status === "AGUARDANDO_CHAMADA");
 
   if (fila.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Nenhum veículo aguardando no pátio.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center">Nenhum veículo aguardando no pátio.</td></tr>`;
     return;
   }
 
@@ -479,6 +541,9 @@ function renderizarFilaEspera(lista) {
       <td>${item.motorista}</td>
       <td>${item.tipoOperacao}</td>
       <td>${item.transportadora}</td>
+      <td>
+        ${item.telefone ? `<button class="btn btn-whatsapp btn-sm" onclick="window.abrirWhatsApp('${item.telefone}', 'Olá ${item.motorista}, seu veículo com placa ${item.placa} foi chamado. Por favor, apresente-se no pátio.')">💬 WhatsApp</button>` : '-'}
+      </td>
       <td>
         <button class="btn btn-sm btn-chamar-veiculo" onclick="window.abrirModalChamar('${item.idFirestore}', '${item.placa}')">
           📣 CHAMAR VEÍCULO
@@ -505,7 +570,11 @@ window.confirmarChamadaDoca = async function() {
   const docaSelecionada = document.getElementById('select-doca-chamar').value;
 
   try {
-    await updateDoc(doc(db, COLECAO_ATENDIMENTOS, atendimentoAtualId), {
+    const docRef = doc(db, COLECAO_ATENDIMENTOS, atendimentoAtualId);
+    const docSnap = await getDoc(docRef);
+    const dados = docSnap.exists() ? docSnap.data() : null;
+
+    await updateDoc(docRef, {
       doca: docaSelecionada,
       status: "CHAMADO",
       usuarioChamada: usuarioLogado?.email || "Líder de Pátio",
@@ -515,6 +584,13 @@ window.confirmarChamadaDoca = async function() {
 
     alert(`Veículo chamado para a ${docaSelecionada}!`);
     window.fecharModalChamar();
+
+    if (dados && dados.telefone) {
+      if (confirm(`Deseja notificar o motorista ${dados.motorista} no WhatsApp?`)) {
+        const msg = `Olá *${dados.motorista}*!\n\nSeu veículo de placa *${dados.placa}* foi chamado para dirigir-se à *${docaSelecionada}*.\n\nPor favor, dirija-se à doca indicada imediatamente.`;
+        window.abrirWhatsApp(dados.telefone, msg);
+      }
+    }
   } catch (err) {
     alert("Erro ao realizar chamada para doca.");
   }
@@ -540,7 +616,7 @@ window.finalizarOperacaoDoca = async function(idFirestore) {
   } catch (err) { alert("Erro ao finalizar doca."); }
 };
 
-// 8. BALANÇA & SAÍDA
+// 8. BALANÇA & SAÍDA COM REGISTRO DE TONELADAS
 window.buscarAtendimentoBalanca = async function() {
   const termo = document.getElementById('input-buscar-balanca')?.value.trim();
   if (!termo) return alert("Digite o ID ou Placa.");
@@ -564,10 +640,15 @@ window.buscarAtendimentoBalanca = async function() {
     document.getElementById('bal-id').innerText = data.atendimentoId;
     document.getElementById('bal-placa').innerText = data.placa;
     document.getElementById('bal-motorista').innerText = data.motorista;
+    document.getElementById('bal-telefone').innerText = data.telefone || '--';
     document.getElementById('bal-ajudante').innerText = data.ajudante ? `${data.ajudante} (${data.documentoAjudante})` : 'Nenhum';
     document.getElementById('bal-operacao').innerText = data.tipoOperacao;
     document.getElementById('bal-doca').innerText = data.doca || 'N/A';
     document.getElementById('bal-status').innerText = data.status;
+    
+    if (document.getElementById('peso-tonelada')) {
+      document.getElementById('peso-tonelada').value = data.pesoToneladas || '';
+    }
 
     document.getElementById('secao-liberacao-saida')?.classList.remove('hidden');
   } catch (err) { alert("Erro na busca."); }
@@ -576,14 +657,21 @@ window.buscarAtendimentoBalanca = async function() {
 window.confirmarSaidaBalança = async function() {
   if (!atendimentoAtualId) return;
 
+  const peso = document.getElementById('peso-tonelada')?.value;
+  if (!peso || peso <= 0) {
+    alert("Informe o peso registrado na balança em toneladas.");
+    return;
+  }
+
   try {
     await updateDoc(doc(db, COLECAO_ATENDIMENTOS, atendimentoAtualId), {
       status: "SAIDA_LIBERADA",
+      pesoToneladas: parseFloat(peso),
       horarioSaida: serverTimestamp(),
       atualizadoEm: serverTimestamp()
     });
 
-    alert("Saída liberada com sucesso!");
+    alert("Peso registrado e saída liberada com sucesso!");
     document.getElementById('secao-liberacao-saida')?.classList.add('hidden');
     document.getElementById('form-buscar-balanca')?.reset();
     atendimentoAtualId = null;
@@ -611,9 +699,11 @@ window.consultarStatusPublico = async function() {
     document.getElementById('cons-id').innerText = data.atendimentoId;
     document.getElementById('cons-placa').innerText = data.placa;
     document.getElementById('cons-motorista').innerText = data.motorista;
+    document.getElementById('cons-telefone').innerText = data.telefone || '--';
     document.getElementById('cons-ajudante').innerText = data.ajudante ? `${data.ajudante} (${data.documentoAjudante})` : 'Nenhum';
     document.getElementById('cons-operacao').innerText = data.tipoOperacao;
     document.getElementById('cons-doca').innerText = data.doca || 'Pátio / Não Alocado';
+    document.getElementById('cons-peso').innerText = data.pesoToneladas ? `${data.pesoToneladas} t` : 'Não Pesado';
     document.getElementById('cons-status').innerText = data.status;
     document.getElementById('cons-data').innerText = formatDateTime(data.atualizadoEm || data.criadoEm);
 
@@ -707,9 +797,10 @@ function renderizarDashboardEAdmin(lista) {
         <td>${item.motorista}</td>
         <td>${item.tipoOperacao}</td>
         <td>${item.doca || '-'}</td>
+        <td><strong>${item.pesoToneladas ? item.pesoToneladas + ' t' : '-'}</strong></td>
         <td>${item.dataCadastro} ${item.horarioCadastro}</td>
         <td><span class="badge-status status-${item.status}">${item.status}</span></td>
-        <td style="text-align: center; white-space: nowrap;">
+        <td class="text-center whitespace-nowrap">
           <button class="btn btn-outline btn-sm" onclick="window.prepararEdicaoViaAdmin('${item.idFirestore}')">✏️ Editar</button>
         </td>
       `;
@@ -788,6 +879,7 @@ window.imprimirRelatorioAdmin = function(tipo) {
         <td>${item.tipoOperacao}</td>
         <td>${item.numeroOp || '-'}</td>
         <td>${item.doca || '-'}</td>
+        <td>${item.pesoToneladas ? item.pesoToneladas + ' t' : '-'}</td>
         <td>${item.dataCadastro} ${item.horarioCadastro}</td>
         <td>${item.status}</td>
       </tr>
@@ -797,7 +889,7 @@ window.imprimirRelatorioAdmin = function(tipo) {
   win.document.write(`
     <html>
       <head>
-        <title>Relatório - Transportadora Paulão</title>
+        <title>Relatório - Transportadora</title>
         <style>
           body { font-family: Arial, sans-serif; padding: 20px; }
           table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
@@ -806,12 +898,12 @@ window.imprimirRelatorioAdmin = function(tipo) {
         </style>
       </head>
       <body>
-        <h2>TRANSPORTADORA PAULÃO - RELATÓRIO DE OPERAÇÕES</h2>
+        <h2>TRANSPORTADORA - RELATÓRIO DE OPERAÇÕES</h2>
         <p>Total: ${listaParaImprimir.length} registros</p>
         <table>
           <thead>
             <tr>
-              <th>ID</th><th>Placa</th><th>Motorista</th><th>Operação</th><th>OP</th><th>Doca</th><th>Data/Hora</th><th>Status</th>
+              <th>ID</th><th>Placa</th><th>Motorista</th><th>Operação</th><th>OP</th><th>Doca</th><th>Peso (t)</th><th>Data/Hora</th><th>Status</th>
             </tr>
           </thead>
           <tbody>${linhasHtml}</tbody>

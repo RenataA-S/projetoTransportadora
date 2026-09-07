@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Gestão de Pátio - Transportadora Paulão</title>
+  <title>Sistema de Gestão de Pátio - Transportadora</title>
   
   <!-- Bibliotecas Externas -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -18,12 +18,10 @@
   <header class="main-header" id="app-header">
     <div class="logo-container">
       <div class="system-logo-svg">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#0a3d62" width="24" height="24">
-          <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
-        </svg>
+        <img src="img/LogoTransportadora.jpeg" alt="Logo Transportadora" class="img-logo-header">
       </div>
       <div>
-        <h1>Transportadora Paulão</h1>
+        <h1>Transportadora</h1>
         <span class="system-title" id="page-subtitle">Controle de Portaria &amp; Pátio</span>
       </div>
     </div>
@@ -44,21 +42,22 @@
 
     <!-- 0. ABA: LOGIN DE USUÁRIO -->
     <div id="aba-login" class="aba-conteudo hidden">
-      <section class="card" style="max-width: 400px; margin: 20px auto;">
-        <div class="card-header" style="text-align: center;">
+      <section class="card login-card">
+        <div class="card-header text-center">
+          <img src="img/LogoTransportadora.jpeg" alt="Logo Transportadora" class="system-logo mb-12">
           <h2>Autenticação</h2>
-          <p class="card-subtitle">Acesse o sistema para continuar</p>
+          <p class="card-subtitle">Acesse o sistema da Transportadora</p>
         </div>
         <form id="form-login" onsubmit="event.preventDefault(); window.fazerLogin(document.getElementById('login-email').value, document.getElementById('login-senha').value);">
-          <div class="form-group" style="margin-bottom: 12px;">
+          <div class="form-group mb-12">
             <label for="login-email">E-MAIL</label>
-            <input type="email" id="login-email" required placeholder="seu.email@empresa.com">
+            <input type="email" id="login-email" required placeholder="usuario@transportadora.com">
           </div>
-          <div class="form-group" style="margin-bottom: 20px;">
+          <div class="form-group mb-20">
             <label for="login-senha">SENHA</label>
             <input type="password" id="login-senha" required placeholder="******">
           </div>
-          <button type="submit" class="btn btn-primary" style="width: 100%;">Entrar no Sistema</button>
+          <button type="submit" class="btn btn-primary btn-full">Entrar no Sistema</button>
         </form>
       </section>
     </div>
@@ -67,21 +66,21 @@
     <div id="aba-entrada" class="aba-conteudo">
       
       <!-- BUSCA RÁPIDA PARA REVISAR/EDITAR CADASTRO -->
-      <section class="card shadow-sm" style="margin-bottom: 15px; border-left: 4px solid var(--accent);">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+      <section class="card shadow-sm card-busca-edicao">
+        <div class="flex-between-wrap gap-10">
           <div>
-            <h3 style="font-size: 1rem; color: var(--primary); margin: 0;">Revisão / Edição de Cadastro Existente</h3>
-            <p class="card-subtitle" style="margin: 0;">Localize um cadastro por ID ou Placa para alterar dados do motorista, veículo ou carga.</p>
+            <h3 class="busca-titulo">Revisão / Edição de Cadastro Existente</h3>
+            <p class="card-subtitle m-0">Localize um cadastro por ID ou Placa para alterar dados do motorista, veículo ou carga.</p>
           </div>
-          <form style="display: flex; gap: 8px; flex: 1; max-width: 450px;" onsubmit="event.preventDefault(); window.buscarCadastroParaEdicao();">
-            <input type="text" id="input-busca-edicao" placeholder="ID (ATD-...) ou Placa" style="flex: 1;" required>
+          <form class="form-busca-container" onsubmit="event.preventDefault(); window.buscarCadastroParaEdicao();">
+            <input type="text" id="input-busca-edicao" placeholder="ID (ATD-...) ou Placa" class="flex-1" required>
             <button type="submit" class="btn btn-outline btn-sm">✏️ Localizar e Editar</button>
           </form>
         </div>
       </section>
 
       <section class="card">
-        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <div class="card-header flex-between-wrap">
           <div>
             <h2 id="titulo-form-entrada">Registro de Entrada de Veículo</h2>
             <p class="card-subtitle" id="subtitulo-form-entrada">Cadastre os dados da carga e do motorista para liberação ao pátio</p>
@@ -95,7 +94,7 @@
           <div class="form-grid">
             <div class="form-group">
               <label for="placa-veiculo">PLACA DO VEÍCULO *</label>
-              <input type="text" id="placa-veiculo" placeholder="Ex: ABC1D23" maxlength="8" required style="text-transform: uppercase;">
+              <input type="text" id="placa-veiculo" placeholder="Ex: ABC1D23" maxlength="8" required class="input-uppercase">
             </div>
 
             <div class="form-group">
@@ -132,7 +131,7 @@
             </div>
 
             <div class="form-group">
-              <label for="telefone-motorista">TELEFONE / CELULAR *</label>
+              <label for="telefone-motorista">TELEFONE / WHATSAPP *</label>
               <input type="text" id="telefone-motorista" placeholder="(11) 99999-9999" required>
             </div>
 
@@ -161,7 +160,7 @@
 
             <div class="form-group">
               <label for="transportadora">TRANSPORTADORA *</label>
-              <input type="text" id="transportadora" placeholder="Ex: Transportadora Paulão" required class="input-capitalizar">
+              <input type="text" id="transportadora" placeholder="Ex: Transportadora" required class="input-capitalizar">
             </div>
 
             <div class="form-group">
@@ -176,7 +175,7 @@
           </div>
 
           <div class="actions-wrapper">
-            <button type="submit" id="btn-submit-entrada" class="btn btn-primary" style="width: 100%;">Registrar Entrada e Gerar Ticket</button>
+            <button type="submit" id="btn-submit-entrada" class="btn btn-primary btn-full">Registrar Entrada e Gerar Ticket</button>
           </div>
         </form>
       </section>
@@ -184,9 +183,9 @@
       <!-- Ticket de Cadastro com QR Code -->
       <section id="area-ticket" class="card card-ticket hidden">
         <div class="ticket-wrapper">
-          <div class="ticket-header" style="text-align: center; margin-bottom: 12px;">
-            <h3>TRANSPORTADORA PAULÃO</h3>
-            <p style="font-size: 0.85rem; color: #555;">REGISTRO DE ENTRADA CONCLUÍDO</p>
+          <div class="ticket-header text-center mb-12">
+            <h3>TRANSPORTADORA</h3>
+            <p class="ticket-subtitle">REGISTRO DE ENTRADA CONCLUÍDO</p>
           </div>
 
           <div class="qr-code-frame">
@@ -195,20 +194,22 @@
 
           <div class="ticket-info">
             <div class="info-row"><span>ID ATENDIMENTO:</span> <strong id="ticket-id">--</strong></div>
-            <div class="info-row"><span>Nº OPERAÇÃO / OP:</span> <strong id="ticket-op" style="color: #0a3d62;">--</strong></div>
+            <div class="info-row"><span>Nº OPERAÇÃO / OP:</span> <strong id="ticket-op" class="text-primary">--</strong></div>
             <div class="info-row"><span>Nº CARGA / NF:</span> <strong id="ticket-carga">--</strong></div>
             <div class="info-row"><span>PLACA:</span> <strong id="ticket-placa">--</strong></div>
             <div class="info-row"><span>MOTORISTA:</span> <strong id="ticket-motorista">--</strong></div>
+            <div class="info-row"><span>TELEFONE:</span> <strong id="ticket-telefone">--</strong></div>
             <div class="info-row"><span>AJUDANTE:</span> <strong id="ticket-ajudante">--</strong></div>
             <div class="info-row"><span>OPERAÇÃO:</span> <strong id="ticket-operacao">--</strong></div>
             <div class="info-row"><span>DOCA:</span> <strong id="ticket-doca">Pátio / Não Alocado</strong></div>
             <div class="info-row"><span>CADASTRO:</span> <strong id="ticket-data">--</strong></div>
           </div>
 
-          <div class="ticket-actions" style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-            <button class="btn btn-outline" onclick="window.revisarTicketAtual()" style="flex: 1; min-width: 130px;">✏️ Revisar / Editar</button>
-            <button class="btn btn-primary" onclick="window.imprimirTicketEntrada()" style="flex: 1; min-width: 140px;">🖨️ Imprimir Ticket</button>
-            <button class="btn btn-secondary" onclick="document.getElementById('area-ticket').classList.add('hidden')" style="flex: 1; min-width: 90px;">Concluir</button>
+          <div class="ticket-actions mt-15 flex-wrap-gap10">
+            <button id="btn-ticket-whatsapp" class="btn btn-whatsapp flex-full" onclick="window.enviarWhatsAppTicket()">💬 Enviar Ticket no WhatsApp</button>
+            <button class="btn btn-outline flex-min130" onclick="window.revisarTicketAtual()">✏️ Revisar / Editar</button>
+            <button class="btn btn-primary flex-min140" onclick="window.imprimirTicketEntrada()">🖨️ Imprimir Ticket</button>
+            <button class="btn btn-secondary flex-min90" onclick="document.getElementById('area-ticket').classList.add('hidden')">Concluir</button>
           </div>
         </div>
       </section>
@@ -216,24 +217,31 @@
 
     <!-- 2. ABA: CHECK-IN DO MOTORISTA -->
     <div id="aba-checkin" class="aba-conteudo hidden">
-      <section class="card" style="text-align: center;">
+      <section class="card text-center">
         <h2>Check-in de Estacionamento no Pátio</h2>
-        <p class="card-subtitle" style="margin-bottom: 20px;">Escaneie o QR Code do seu Ticket de Entrada para confirmar presença na fila do pátio.</p>
+        <p class="card-subtitle mb-20">Busque pelo seu ID/Placa ou escaneie o QR Code para fazer o check-in no pátio.</p>
+
+        <div class="card shadow-sm card-busca-edicao auto-margin-max400 mb-20">
+          <form class="form-busca-container" onsubmit="event.preventDefault(); window.buscarCheckinPorTermo();">
+            <input type="text" id="input-busca-checkin" placeholder="ID (ATD-...) ou Placa" class="flex-1 input-uppercase" required>
+            <button type="submit" class="btn btn-primary btn-sm">🔍 Buscar Cadastro</button>
+          </form>
+        </div>
 
         <div id="checkin-alert" class="alert hidden"></div>
 
         <button id="btn-scan-checkin" class="btn btn-primary btn-lg" onclick="window.habilitarScannerCheckin()">📷 ESCANEAR QR CODE (CHECK-IN)</button>
 
-        <div id="reader-checkin" class="hidden" style="width: 100%; max-width: 400px; margin: 20px auto; border-radius: 8px; overflow: hidden;"></div>
+        <div id="reader-checkin" class="hidden qr-reader-container"></div>
 
-        <div id="card-confirmacao-checkin" class="card hidden alert-success" style="margin-top: 20px; text-align: left;">
-          <h3 style="color: #155724; margin-bottom: 10px;">✅ Check-in Realizado com Sucesso!</h3>
-          <p style="margin-bottom: 15px;">Seu veículo está oficialmente na fila de espera para chamada de doca.</p>
-          <div class="ticket-info" style="background: #fff; padding: 12px; border-radius: 6px;">
+        <div id="card-confirmacao-checkin" class="card hidden alert-success card-confirmacao">
+          <h3 class="checkin-sucesso-titulo">✅ Check-in Realizado com Sucesso!</h3>
+          <p class="mb-15">Seu veículo está oficialmente na fila de espera para chamada de doca.</p>
+          <div class="ticket-info bg-white-p12-r6">
             <div class="info-row"><span>Atendimento:</span> <strong id="checkin-resumo-id">--</strong></div>
             <div class="info-row"><span>Placa:</span> <strong id="checkin-resumo-placa">--</strong></div>
             <div class="info-row"><span>Motorista:</span> <strong id="checkin-resumo-motorista">--</strong></div>
-            <div class="info-row"><span>Status Atual:</span> <strong id="checkin-resumo-status" style="color: #079992;">AGUARDANDO_CHAMADA</strong></div>
+            <div class="info-row"><span>Status Atual:</span> <strong id="checkin-resumo-status" class="text-success">AGUARDANDO_CHAMADA</strong></div>
           </div>
         </div>
       </section>
@@ -242,8 +250,8 @@
     <!-- 3. ABA: PAINEL DO LÍDER E GESTÃO DE DOCAS -->
     <div id="aba-docas" class="aba-conteudo hidden">
       <section class="card">
-        <h2>Grid de Controle das Docas (Tempo Real)</h2>
-        <div class="docas-grid" id="container-docas-grid"></div>
+        <h2>Grid de Controle das Docas</h2>
+        <div class="docas-grid-5x4" id="container-docas-grid"></div>
       </section>
 
       <!-- FILA DE ESPERA -->
@@ -260,11 +268,12 @@
                 <th>Motorista</th>
                 <th>Operação</th>
                 <th>Transportadora</th>
+                <th>Contato</th>
                 <th>Ação</th>
               </tr>
             </thead>
             <tbody id="tbody-fila-espera">
-              <tr><td colspan="8" style="text-align:center;">Carregando fila...</td></tr>
+              <tr><td colspan="9" class="text-center">Carregando fila...</td></tr>
             </tbody>
           </table>
         </div>
@@ -272,20 +281,20 @@
 
       <section class="card">
         <h2>Escanear QR Code na Doca (Validação / Início / Finalização)</h2>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <button class="btn btn-primary" onclick="window.habilitarScannerDoca()" style="width: 100%;">📷 Leitor de QR Code na Doca</button>
+        <div class="flex-wrap-gap10">
+          <button class="btn btn-primary btn-full" onclick="window.habilitarScannerDoca()">📷 Leitor de QR Code na Doca</button>
         </div>
-        <div id="reader-doca" class="hidden" style="width: 100%; max-width: 400px; margin: 20px auto;"></div>
+        <div id="reader-doca" class="hidden qr-reader-container"></div>
       </section>
     </div>
 
-    <!-- Modal para Seleção de Doca -->
+    <!-- Modal para Seleção de Doca (20 DOCAS) -->
     <div id="modal-chamar-doca" class="modal-overlay hidden">
       <div class="modal-content">
         <h3>Chamar Veículo para Doca</h3>
-        <p style="margin-bottom: 15px; color: #555;">Selecione uma doca livre para encaminhar o veículo <strong id="modal-placa">--</strong>:</p>
+        <p class="modal-subtext">Selecione uma doca livre para encaminhar o veículo <strong id="modal-placa">--</strong>:</p>
         
-        <div class="form-group" style="margin-bottom: 20px;">
+        <div class="form-group mb-20">
           <label for="select-doca-chamar">SELECIONE A DOCA *</label>
           <select id="select-doca-chamar">
             <option value="Doca 01">Doca 01</option>
@@ -298,12 +307,22 @@
             <option value="Doca 08">Doca 08</option>
             <option value="Doca 09">Doca 09</option>
             <option value="Doca 10">Doca 10</option>
+            <option value="Doca 11">Doca 11</option>
+            <option value="Doca 12">Doca 12</option>
+            <option value="Doca 13">Doca 13</option>
+            <option value="Doca 14">Doca 14</option>
+            <option value="Doca 15">Doca 15</option>
+            <option value="Doca 16">Doca 16</option>
+            <option value="Doca 17">Doca 17</option>
+            <option value="Doca 18">Doca 18</option>
+            <option value="Doca 19">Doca 19</option>
+            <option value="Doca 20">Doca 20</option>
           </select>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
-          <button class="btn btn-secondary" onclick="window.fecharModalChamar()" style="flex: 1;">Cancelar</button>
-          <button class="btn btn-success" onclick="window.confirmarChamadaDoca()" style="flex: 1;">Confirmar</button>
+        <div class="flex-end-wrap-gap10">
+          <button class="btn btn-secondary flex-1" onclick="window.fecharModalChamar()">Cancelar</button>
+          <button class="btn btn-success flex-1" onclick="window.confirmarChamadaDoca()">Confirmar</button>
         </div>
       </div>
     </div>
@@ -312,27 +331,36 @@
     <div id="aba-balanca" class="aba-conteudo hidden">
       <section class="card">
         <h2>Localizar Atendimento para Pesagem e Liberação de Saída</h2>
-        <form id="form-buscar-balanca" style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;" onsubmit="event.preventDefault(); window.buscarAtendimentoBalanca();">
-          <input type="text" id="input-buscar-balanca" placeholder="Informe o ID ex: ATD-20260902-00001 ou Placa" style="flex: 1; min-width: 200px;" required>
-          <button type="submit" class="btn btn-primary" style="min-width: 120px;">Buscar Veículo</button>
+        <form id="form-buscar-balanca" class="form-busca-flex mt-12" onsubmit="event.preventDefault(); window.buscarAtendimentoBalanca();">
+          <input type="text" id="input-buscar-balanca" placeholder="Informe o ID ex: ATD-20260902-00001 ou Placa" class="input-busca-min" required>
+          <button type="submit" class="btn btn-primary btn-busca-min">Buscar Veículo</button>
         </form>
       </section>
 
       <section id="secao-liberacao-saida" class="card hidden">
         <h2>Consolidação e Liberação de Saída</h2>
         
-        <div class="ticket-info" style="margin-bottom: 20px;">
+        <div class="ticket-info mb-20">
           <div class="info-row"><span>ID ATENDIMENTO:</span> <strong id="bal-id">--</strong></div>
           <div class="info-row"><span>PLACA:</span> <strong id="bal-placa">--</strong></div>
           <div class="info-row"><span>MOTORISTA:</span> <strong id="bal-motorista">--</strong></div>
+          <div class="info-row"><span>TELEFONE:</span> <strong id="bal-telefone">--</strong></div>
           <div class="info-row"><span>AJUDANTE:</span> <strong id="bal-ajudante">--</strong></div>
           <div class="info-row"><span>OPERAÇÃO:</span> <strong id="bal-operacao">--</strong></div>
           <div class="info-row"><span>DOCA UTILIZADA:</span> <strong id="bal-doca">--</strong></div>
           <div class="info-row"><span>STATUS ATUAL:</span> <strong id="bal-status">--</strong></div>
         </div>
 
-        <button type="button" class="btn btn-success" style="width: 100%; font-size: 1rem;" onclick="window.confirmarSaidaBalança()">
-          🚚 CONFIRMAR SAÍDA E LIBERAR PORTARIA
+        <div class="card p-15 border-primary mb-20 bg-f8">
+          <h3 class="mb-12 text-primary">⚖️ Registro de Pesagem (Balança)</h3>
+          <div class="form-group mb-12">
+            <label for="peso-tonelada">PESO DA BALANÇA (EM TONELADAS - t) *</label>
+            <input type="number" id="peso-tonelada" step="0.001" placeholder="Ex: 24.500" required>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-success btn-full btn-text-lg" onclick="window.confirmarSaidaBalança()">
+          🚚 REGISTRAR PESO, CONFIRMAR SAÍDA E LIBERAR PORTARIA
         </button>
       </section>
     </div>
@@ -344,22 +372,24 @@
           <h2>Consultar Status de Atendimento</h2>
           <p class="card-subtitle">Informe o ID do Atendimento ou a Placa para acompanhar a posição</p>
         </div>
-        <form id="form-consulta-status" style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;" onsubmit="event.preventDefault(); window.consultarStatusPublico();">
-          <input type="text" id="input-consulta-termo" placeholder="Ex: ATD-20260902-00001 ou ABC1D23" style="flex: 1; min-width: 200px;" required>
-          <button type="submit" class="btn btn-primary" style="min-width: 120px;">Consultar</button>
+        <form id="form-consulta-status" class="form-busca-flex mt-12" onsubmit="event.preventDefault(); window.consultarStatusPublico();">
+          <input type="text" id="input-consulta-termo" placeholder="Ex: ATD-20260902-00001 ou ABC1D23" class="input-busca-min" required>
+          <button type="submit" class="btn btn-primary btn-busca-min">Consultar</button>
         </form>
       </section>
 
       <section id="secao-resultado-consulta" class="card hidden">
         <h2>Resultado da Consulta</h2>
-        <div class="ticket-info" style="margin-top: 15px;">
+        <div class="ticket-info mt-15">
           <div class="info-row"><span>ID ATENDIMENTO:</span> <strong id="cons-id">--</strong></div>
           <div class="info-row"><span>PLACA:</span> <strong id="cons-placa">--</strong></div>
           <div class="info-row"><span>MOTORISTA:</span> <strong id="cons-motorista">--</strong></div>
+          <div class="info-row"><span>TELEFONE:</span> <strong id="cons-telefone">--</strong></div>
           <div class="info-row"><span>AJUDANTE:</span> <strong id="cons-ajudante">--</strong></div>
           <div class="info-row"><span>OPERAÇÃO:</span> <strong id="cons-operacao">--</strong></div>
           <div class="info-row"><span>DOCA:</span> <strong id="cons-doca">--</strong></div>
-          <div class="info-row"><span>STATUS ATUAL:</span> <strong id="cons-status" style="color: #0a3d62;">--</strong></div>
+          <div class="info-row"><span>PESO REGISTRADO:</span> <strong id="cons-peso">--</strong></div>
+          <div class="info-row"><span>STATUS ATUAL:</span> <strong id="cons-status" class="text-primary">--</strong></div>
           <div class="info-row"><span>ÚLTIMA ATUALIZAÇÃO:</span> <strong id="cons-data">--</strong></div>
         </div>
       </section>
@@ -376,45 +406,45 @@
           </div>
           <div class="card stat-card">
             <h4>Chamados</h4>
-            <span id="stat-chamados" class="stat-number" style="color: #e67e22;">0</span>
+            <span id="stat-chamados" class="stat-number stat-chamados">0</span>
           </div>
           <div class="card stat-card">
             <h4>Na Doca</h4>
-            <span id="stat-doca" class="stat-number" style="color: var(--accent);">0</span>
+            <span id="stat-doca" class="stat-number stat-doca">0</span>
           </div>
           <div class="card stat-card">
             <h4>Finalizados</h4>
-            <span id="stat-finalizados" class="stat-number" style="color: var(--success);">0</span>
+            <span id="stat-finalizados" class="stat-number stat-finalizados">0</span>
           </div>
         </div>
       </section>
 
       <section class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+        <div class="flex-between-wrap gap-10 mb-15">
           <h2>Volume de Operações</h2>
-          <select id="tipo-grafico-select" style="padding: 6px 12px; font-weight: 600;">
+          <select id="tipo-grafico-select" class="select-grafico">
             <option value="bar">📊 Gráfico de Barras</option>
             <option value="line">📈 Gráfico de Linha</option>
           </select>
         </div>
-        <div style="height: 250px; position: relative; width: 100%;">
+        <div class="chart-container">
           <canvas id="graficoOperacoes"></canvas>
         </div>
       </section>
 
       <section class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+        <div class="flex-between-wrap gap-10 mb-15">
           <h2>Histórico Geral e Relatórios</h2>
           <button class="btn btn-success" onclick="window.imprimirRelatorioAdmin('geral')">🖨️ Imprimir Relatório Geral</button>
         </div>
 
         <!-- FILTROS DE RELATÓRIO -->
-        <div class="relatorio-filter-container" style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px;">
-          <h4 style="margin-bottom: 10px; color: var(--primary);">Filtrar Relatório por Período / Busca</h4>
-          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
-            <div style="flex: 1; min-width: 150px;">
-              <label style="font-size: 0.78rem; font-weight: bold;">TIPO DE FILTRO</label>
-              <select id="select-tipo-filtro-data" onchange="window.alternarCamposFiltroData()" style="padding: 6px; width: 100%;">
+        <div class="relatorio-filter-container">
+          <h4 class="filtro-titulo">Filtrar Relatório por Período / Busca</h4>
+          <div class="filtro-grid-container">
+            <div class="filtro-col-min150">
+              <label class="label-filtro">TIPO DE FILTRO</label>
+              <select id="select-tipo-filtro-data" onchange="window.alternarCamposFiltroData()" class="p-6-full">
                 <option value="todos">Todos os Registros</option>
                 <option value="dia">Por Dia Específico</option>
                 <option value="mes">Por Mês/Ano</option>
@@ -422,27 +452,27 @@
               </select>
             </div>
 
-            <div id="box-filtro-dia" class="hidden" style="flex: 1; min-width: 140px;">
-              <label style="font-size: 0.78rem; font-weight: bold;">DATA</label>
-              <input type="date" id="filtro-data-dia" style="padding: 6px; width: 100%;">
+            <div id="box-filtro-dia" class="hidden filtro-col-min140">
+              <label class="label-filtro">DATA</label>
+              <input type="date" id="filtro-data-dia" class="p-6-full">
             </div>
 
-            <div id="box-filtro-mes" class="hidden" style="flex: 1; min-width: 140px;">
-              <label style="font-size: 0.78rem; font-weight: bold;">MÊS / ANO</label>
-              <input type="month" id="filtro-data-mes" style="padding: 6px; width: 100%;">
+            <div id="box-filtro-mes" class="hidden filtro-col-min140">
+              <label class="label-filtro">MÊS / ANO</label>
+              <input type="month" id="filtro-data-mes" class="p-6-full">
             </div>
 
-            <div id="box-filtro-ano" class="hidden" style="flex: 1; min-width: 100px;">
-              <label style="font-size: 0.78rem; font-weight: bold;">ANO</label>
-              <input type="number" id="filtro-data-ano" placeholder="2026" min="2020" max="2099" style="padding: 6px; width: 100%;">
+            <div id="box-filtro-ano" class="hidden filtro-col-min100">
+              <label class="label-filtro">ANO</label>
+              <input type="number" id="filtro-data-ano" placeholder="2026" min="2020" max="2099" class="p-6-full">
             </div>
 
-            <div style="flex: 1; min-width: 200px;">
-              <label style="font-size: 0.78rem; font-weight: bold;">BUSCA POR TEXTO</label>
-              <input type="text" id="input-busca-admin" placeholder="🔍 ID, Placa, Motorista, Operação..." style="padding: 6px 12px; font-size: 0.85rem; width: 100%;">
+            <div class="filtro-col-min200">
+              <label class="label-filtro">BUSCA POR TEXTO</label>
+              <input type="text" id="input-busca-admin" placeholder="🔍 ID, Placa, Motorista, Operação..." class="input-busca-admin">
             </div>
 
-            <div style="display: flex; gap: 6px;">
+            <div class="flex-gap-6">
               <button class="btn btn-primary btn-sm" onclick="window.aplicarFiltrosAdmin()">🔍 Filtrar</button>
               <button class="btn btn-outline btn-sm" onclick="window.imprimirRelatorioAdmin('filtrado')">🖨️ Imprimir Filtrado</button>
             </div>
@@ -458,13 +488,14 @@
                 <th>Motorista</th>
                 <th>Operação</th>
                 <th>Doca</th>
+                <th>Peso (t)</th>
                 <th>Cadastro</th>
                 <th>Status</th>
                 <th>Ação</th>
               </tr>
             </thead>
             <tbody id="tbody-historico">
-              <tr><td colspan="8" style="text-align:center;">Carregando histórico...</td></tr>
+              <tr><td colspan="9" class="text-center">Carregando histórico...</td></tr>
             </tbody>
           </table>
         </div>
@@ -474,7 +505,7 @@
   </main>
 
   <footer class="app-footer">
-    Desenvolvido por Renata A.S. com auxílio de Gemini AI &copy; 2026 Transportadora Paulão[cite: 21, 24]
+    Desenvolvido por Renata A.S. com auxílio de Gemini AI &copy; 2026 Transportadora[cite: 13]
   </footer>
 
   <script type="module" src="script.js"></script>
