@@ -9,8 +9,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Plugin para Porcentagens/Valores nos Gráficos Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <!-- Biblioteca para Exportação Excel .xlsx -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <link rel="stylesheet" href="style.css">
+  <link rel="shortcut icon" href="img/caminhao.jpg" type="image/x-icon">
 </head>
 <body>
 
@@ -18,7 +23,7 @@
   <header class="main-header" id="app-header">
     <div class="logo-container">
       <div class="system-logo-svg">
-        <img src="img/LogoTransportadora.jpeg" alt="Logo Transportadora" class="img-logo-header">
+        <img src="img/caminhao.jpg" alt="Logo Transportadora" class="img-logo-header">
       </div>
       <div>
         <h1>Transportadora</h1>
@@ -44,7 +49,7 @@
     <div id="aba-login" class="aba-conteudo hidden">
       <section class="card login-card">
         <div class="card-header text-center">
-          <img src="img/caminhão.jpg" alt="Logo Transportadora" class="system-logo mb-12">
+          <img src="img/caminhao.jpg" alt="Logo Transportadora" class="system-logo mb-12">
           <h2>Autenticação</h2>
           <p class="card-subtitle">Acesse o sistema da Transportadora</p>
         </div>
@@ -64,8 +69,6 @@
 
     <!-- 1. ABA: PORTARIA / ENTRADA DE VEÍCULOS -->
     <div id="aba-entrada" class="aba-conteudo">
-      
-      <!-- BUSCA RÁPIDA PARA REVISAR/EDITAR CADASTRO -->
       <section class="card shadow-sm card-busca-edicao">
         <div class="flex-between-wrap gap-10">
           <div>
@@ -180,7 +183,7 @@
         </form>
       </section>
 
-      <!-- Ticket de Cadastro com QR Code -->
+      <!-- Ticket com QR Code -->
       <section id="area-ticket" class="card card-ticket hidden">
         <div class="ticket-wrapper">
           <div class="ticket-header text-center mb-12">
@@ -288,7 +291,7 @@
       </section>
     </div>
 
-    <!-- Modal para Seleção de Doca (20 DOCAS) -->
+    <!-- Modal para Seleção de Doca -->
     <div id="modal-chamar-doca" class="modal-overlay hidden">
       <div class="modal-content">
         <h3>Chamar Veículo para Doca</h3>
@@ -395,47 +398,171 @@
       </section>
     </div>
 
-    <!-- 5. ABA: PAINEL ADMINISTRATIVO -->
+    <!-- 5. ABA: PAINEL ADMINISTRATIVO (TELA ADM) -->
     <div id="aba-admin" class="aba-conteudo hidden">
-      <section class="card">
-        <h2>Métricas Operacionais do Pátio</h2>
-        <div class="dashboard-cards">
-          <div class="card stat-card">
-            <h4>Aguardando</h4>
-            <span id="stat-espera" class="stat-number">0</span>
+      
+      <!-- SELEÇÃO DE TIPO DE RELATÓRIO -->
+      <section class="card shadow-sm border-primary">
+        <div class="flex-between-wrap gap-10">
+          <div>
+            <h3 class="text-primary">⚙️ Formato do Relatório / Visualização Adm</h3>
+            <p class="card-subtitle m-0">Escolha como deseja visualizar ou gerar os dados operacionais do pátio.</p>
           </div>
-          <div class="card stat-card">
-            <h4>Chamados</h4>
-            <span id="stat-chamados" class="stat-number stat-chamados">0</span>
-          </div>
-          <div class="card stat-card">
-            <h4>Na Doca</h4>
-            <span id="stat-doca" class="stat-number stat-doca">0</span>
-          </div>
-          <div class="card stat-card">
-            <h4>Finalizados</h4>
-            <span id="stat-finalizados" class="stat-number stat-finalizados">0</span>
+          <div class="form-group min-w-200">
+            <label for="select-modo-relatorio-adm">FORMATO DO RELATÓRIO:</label>
+            <select id="select-modo-relatorio-adm" onchange="window.alternarModoRelatorioAdm(this.value)">
+              <option value="dashboard">📊 Dashboard Integrado</option>
+              <option value="simples">📄 Relatório Simples (Impressão/Geral)</option>
+              <option value="excel">📊 Planilha Excel Online</option>
+            </select>
           </div>
         </div>
       </section>
 
-      <section class="card">
-        <div class="flex-between-wrap gap-10 mb-15">
-          <h2>Volume de Operações</h2>
-          <select id="tipo-grafico-select" class="select-grafico">
-            <option value="bar">📊 Gráfico de Barras</option>
-            <option value="line">📈 Gráfico de Linha</option>
-          </select>
-        </div>
-        <div class="chart-container">
-          <canvas id="graficoOperacoes"></canvas>
-        </div>
-      </section>
+      <!-- DASHBOARD COMPLETO COM CARTÕES KPIS DE TRANSPORTADORA E GRÁFICOS -->
+      <div id="container-admin-dashboard">
+        
+        <!-- PAINEL DE CARTÕES ESTILIZADOS LOGÍSTICOS/TRANSPORTADORA (INSPIRADO NA SEGUMDA IMAGEM) -->
+        <section class="card shadow-sm">
+          <h2>Métricas e Cartões de KPI Operacionais Logísticos</h2>
+          
+          <div class="kpi-metric-grid mt-15">
+            
+            <!-- LINHA 1 (BLUE KPIS) -->
+            <div class="kpi-box bg-blue">
+              <span class="kpi-value" id="kpi-total-volume">0,00 t</span>
+              <span class="kpi-title">Volume Total Movimentado</span>
+            </div>
 
-      <section class="card">
+            <div class="kpi-box bg-blue">
+              <span class="kpi-value" id="kpi-qtd-atendimentos">0</span>
+              <span class="kpi-title">Qtd. Atendimentos</span>
+            </div>
+
+            <div class="kpi-box bg-blue">
+              <span class="kpi-value" id="kpi-peso-medio">0,00 t</span>
+              <span class="kpi-title">Média por Veículo (t)</span>
+            </div>
+
+            <div class="kpi-box bg-blue">
+              <span class="kpi-value" id="kpi-aproveitamento-docas">0,00%</span>
+              <span class="kpi-title">Aproveitamento Docas (%)</span>
+            </div>
+
+            <!-- LINHA 2 (PURPLE & TEAL KPIS) -->
+            <div class="kpi-box bg-purple">
+              <span class="kpi-value" id="kpi-veiculos-patio">0</span>
+              <span class="kpi-title">Veículos no Pátio</span>
+            </div>
+
+            <div class="kpi-box bg-teal">
+              <span class="kpi-value" id="kpi-ocupacao-doca">0%</span>
+              <span class="kpi-title">Ocupação Docas Atual</span>
+            </div>
+
+            <div class="kpi-box bg-teal">
+              <span class="kpi-value" id="kpi-entregas-carregamentos">0</span>
+              <span class="kpi-title">Entregas / Carregamentos</span>
+            </div>
+
+            <div class="kpi-box bg-teal">
+              <span class="kpi-value" id="kpi-aguardando-chamada">0</span>
+              <span class="kpi-title">Aguardando Doca</span>
+            </div>
+
+            <!-- LINHA 3 (TEAL & RED KPIS) -->
+            <div class="kpi-box bg-teal">
+              <span class="kpi-value" id="kpi-saidas-liberadas">0</span>
+              <span class="kpi-title">Saídas Liberadas</span>
+            </div>
+
+            <div class="kpi-box bg-red">
+              <span class="kpi-value" id="kpi-ocorrencias">0</span>
+              <span class="kpi-title">Atrasos / Ocorrências</span>
+            </div>
+
+            <div class="kpi-box bg-red">
+              <span class="kpi-value" id="kpi-pendentes-checkin">0</span>
+              <span class="kpi-title">Sem Check-in Pátio</span>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- SEÇÃO DE GRÁFICOS PARALELOS COM PORCENTAGENS -->
+        <div class="dashboard-charts-grid">
+          <!-- 1. GRÁFICO DE EVOLUÇÃO TEMPORAL -->
+          <section class="card">
+            <div class="flex-between-wrap gap-10 mb-15">
+              <h2>Evolução Temporal e Histórico</h2>
+              <select id="tipo-grafico-select" class="select-grafico">
+                <option value="line">📈 Gráfico de Linhas (Tendências/Dias)</option>
+                <option value="bar">📊 Gráfico de Barras</option>
+              </select>
+            </div>
+            <div class="chart-container">
+              <canvas id="graficoEvolucaoTemporal"></canvas>
+            </div>
+          </section>
+
+          <!-- 2. GRÁFICO DE PIZZA (OPERAÇÕES) COM % -->
+          <section class="card">
+            <h2>Distribuição por Tipo de Operação</h2>
+            <div class="chart-container">
+              <canvas id="graficoPizzaOperacoes"></canvas>
+            </div>
+          </section>
+
+          <!-- 3. GRÁFICO DE ROSCA (STATUS DOS VEÍCULOS) COM % -->
+          <section class="card">
+            <h2>Divisão por Status de Atendimento</h2>
+            <div class="chart-container">
+              <canvas id="graficoRoscaStatus"></canvas>
+            </div>
+          </section>
+
+          <!-- 4. GRÁFICO MEDIDOR DE OCUPAÇÃO (GAUGE) COM % -->
+          <section class="card">
+            <h2>Medidor de Ocupação Atual (Gauge)</h2>
+            <div class="chart-container flex-center">
+              <canvas id="graficoGaugeOcupacao"></canvas>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- SEÇÃO EXCEL EMBUTIDO (ONLINE) -->
+      <div id="container-admin-excel" class="hidden">
+        <section class="card">
+          <div class="card-header flex-between-wrap">
+            <div>
+              <h2>Gestão via Planilha Excel (Online / Web)</h2>
+              <p class="card-subtitle">Trabalhe diretamente na planilha Excel hospedada no SharePoint / OneDrive / Google Sheets.</p>
+            </div>
+            <div class="flex-gap-6">
+              <a href="https://onedrive.live.com" target="_blank" class="btn btn-success btn-sm">📂 Abrir no Excel Online</a>
+            </div>
+          </div>
+
+          <div class="excel-frame-wrapper">
+            <iframe id="iframe-excel" src="https://onedrive.live.com/embed?resid=0000000000000000" width="100%" height="600" frameborder="0" scrolling="no"></iframe>
+          </div>
+        </section>
+      </div>
+
+      <!-- HISTÓRICO, FILTROS E EXPORTAÇÃO EXCEL -->
+      <section class="card" id="container-admin-tabela">
         <div class="flex-between-wrap gap-10 mb-15">
-          <h2>Histórico Geral e Relatórios</h2>
-          <button class="btn btn-success" onclick="window.imprimirRelatorioAdmin('geral')">🖨️ Imprimir Relatório Geral</button>
+          <h2>Histórico Geral e Gestão de Relatórios</h2>
+          <div class="flex-gap-6 flex-wrap">
+            <!-- BOTÃO DE EXPORTAÇÃO EXCEL LOCAL (.XLSX) -->
+            <button class="btn btn-success" onclick="window.exportarParaExcelXLSX()">
+              📥 Exportar para Excel (.xlsx)
+            </button>
+            <button class="btn btn-outline" onclick="window.imprimirRelatorioAdmin('geral')">
+              🖨️ Imprimir
+            </button>
+          </div>
         </div>
 
         <!-- FILTROS DE RELATÓRIO -->
@@ -500,12 +627,32 @@
           </table>
         </div>
       </section>
+
+      <!-- HISTÓRICO DE RELATÓRIOS SALVOS -->
+      <section class="card" id="container-relatorios-salvos">
+        <h2>📋 Relatórios Salvos no Pátio</h2>
+        <div class="table-responsive">
+          <table class="table-custom">
+            <thead>
+              <tr>
+                <th>Nome do Relatório</th>
+                <th>Data da Geração</th>
+                <th>Qtd. Registros</th>
+                <th>Exportar / Ação</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-relatorios-salvos">
+              <tr><td colspan="4" class="text-center">Nenhum relatório salvo encontrado.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
 
   </main>
 
   <footer class="app-footer">
-    Desenvolvido por Renata A.S. com auxílio de Gemini AI &copy; 2026 Transportadora
+    Desenvolvido por Renata A.S. - contato (11) 965554640 - 2026 Transportadora
   </footer>
 
   <script type="module" src="script.js"></script>

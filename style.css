@@ -137,7 +137,7 @@ body {
 /* Container Principal e Cards */
 .container {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 20px auto;
   padding: 0 16px;
   flex: 1;
@@ -260,6 +260,56 @@ body {
 
 .hidden { display: none !important; }
 
+/* ESTILO DOS CARTÕES KPI LOGÍSTICOS DA TRANSPORTADORA (ESTILO SEGUNDA IMAGEM) */
+.kpi-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 1024px) {
+  .kpi-metric-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .kpi-metric-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .kpi-metric-grid { grid-template-columns: 1fr; }
+}
+
+.kpi-box {
+  padding: 16px 14px;
+  border-radius: 4px;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  text-align: right;
+  min-height: 80px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.kpi-box.bg-blue { background-color: #5390c3; }
+.kpi-box.bg-purple { background-color: #8e68ad; }
+.kpi-box.bg-teal { background-color: #38bfa7; }
+.kpi-box.bg-red { background-color: #eb5757; }
+
+.kpi-value {
+  font-size: 1.5rem;
+  font-weight: 300;
+  line-height: 1.1;
+}
+
+.kpi-title {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  margin-top: 4px;
+  font-weight: 400;
+}
+
 /* Grid de Docas 5x4 */
 .docas-grid-5x4 {
   display: grid;
@@ -269,15 +319,11 @@ body {
 }
 
 @media (max-width: 900px) {
-  .docas-grid-5x4 {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .docas-grid-5x4 { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 600px) {
-  .docas-grid-5x4 {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .docas-grid-5x4 { grid-template-columns: repeat(2, 1fr); }
 }
 
 .doca-card {
@@ -319,14 +365,41 @@ body {
 .status-FINALIZADO { background: #d1fae5; color: #065f46; }
 .status-SAIDA_LIBERADA { background: #10b981; color: #ffffff; }
 
-/* Dashboard Cards */
-.dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 15px; }
-.stat-card { text-align: center; padding: 14px; margin-bottom: 0; }
-.stat-number { font-size: 1.8rem; font-weight: bold; color: var(--primary); display: block; margin-top: 4px; }
+/* Layout Grid dos Gráficos */
+.dashboard-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 15px;
+}
 
-/* Ticket e Resumos */
+@media (max-width: 900px) {
+  .dashboard-charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-container { height: 260px; position: relative; width: 100%; }
+.flex-center { display: flex; justify-content: center; align-items: center; }
+
+/* Ticket e Centralização de QR Code */
 .card-ticket { max-width: 450px; margin: 20px auto; border: 2px dashed var(--primary); }
-.qr-code-frame { display: flex; justify-content: center; margin: 15px 0; background: #fff; padding: 10px; border-radius: 8px; }
+.qr-code-frame {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin: 15px auto !important;
+  background: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center !important;
+}
+
+.qr-code-frame img, .qr-code-frame canvas {
+  margin: 0 auto !important;
+  display: block !important;
+}
+
 .ticket-info { background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); }
 .info-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 4px 0; border-bottom: 1px dashed #e2e8f0; }
 .info-row:last-child { border-bottom: none; }
@@ -355,16 +428,11 @@ body {
   box-shadow: 0 10px 25px rgba(0,0,0,0.2);
 }
 
-.alert {
-  padding: 12px;
-  border-radius: 6px;
-  font-size: 0.88rem;
-  margin-bottom: 15px;
-}
+.alert { padding: 12px; border-radius: 6px; font-size: 0.88rem; margin-bottom: 15px; }
 .alert-danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
 
-/* Classes Utilitárias */
+/* Utilitários */
 .text-center { text-align: center; }
 .text-left { text-align: left; }
 .text-primary { color: var(--primary); }
@@ -407,11 +475,7 @@ body {
 .btn-busca-min { min-width: 120px; }
 .btn-text-lg { font-size: 1rem; }
 
-.stat-chamados { color: #e67e22; }
-.stat-doca { color: var(--accent); }
-.stat-finalizados { color: var(--success); }
 .select-grafico { padding: 6px 12px; font-weight: 600; }
-.chart-container { height: 250px; position: relative; width: 100%; }
 
 .relatorio-filter-container { background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px; }
 .filtro-titulo { margin-bottom: 10px; color: var(--primary); }
@@ -424,12 +488,42 @@ body {
 .filtro-col-min200 { flex: 1; min-width: 200px; }
 .input-busca-admin { padding: 6px 12px; font-size: 0.85rem; width: 100%; }
 .flex-gap-6 { display: flex; gap: 6px; }
+.flex-wrap { flex-wrap: wrap; }
 
-.auto-margin-max400 {
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
+.auto-margin-max400 { max-width: 400px; margin-left: auto; margin-right: auto; }
 .p-15 { padding: 15px; }
 .border-primary { border: 1px solid var(--primary); }
+.min-w-200 { min-width: 200px; }
+.excel-frame-wrapper { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; margin-top: 10px; }
+
+.app-footer {
+  text-align: center;
+  padding: 16px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.8rem;
+  margin-top: auto;
+}
+
+/* REGRAS DE IMPRESSÃO (PDF / IMPRESSORA) PARA CENTRALIZAR O QR CODE */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #area-ticket, #area-ticket * {
+    visibility: visible;
+  }
+  #area-ticket {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    max-width: 380px;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .ticket-actions {
+    display: none !important;
+  }
+}
