@@ -31,7 +31,7 @@ if (typeof ChartDataLabels !== 'undefined') {
 // Variáveis Globais de Estado
 let atendimentoAtualId = null;
 let html5QrScanner = null;
-let usuarioLogado = null;
+let usuarioLogado = null; // Armazena a sessão ativa do usuário (VC)
 let unsubscribeFila = null;
 let historicoCompleto = [];
 let historicoExibido = [];
@@ -112,9 +112,13 @@ function gerarAtendimentoId() {
 
 function extrairCodigoQRCode(qrText) {
   if (!qrText) return "";
-  if (qrText.includes("id=")) {
-    const params = new URLSearchParams(qrText.includes("?") ? qrText.split("?")[1] : qrText);
-    return params.get("id") || qrText.split("id=")[1].split("&")[0].trim();
+  try {
+    if (qrText.includes("id=")) {
+      const urlObj = new URL(qrText.startsWith("http") ? qrText : `https://dummy.com/?${qrText}`);
+      return urlObj.searchParams.get("id") || qrText;
+    }
+  } catch (e) {
+    console.warn("Falha ao analisar parâmetros de URL do QR Code:", e);
   }
   return qrText.trim();
 }
@@ -140,7 +144,7 @@ window.navegarPara = function(idAba) {
   }
 };
 
-// 4. AUTENTICAÇÃO
+// 4. AUTENTICAÇÃO E SESSÃO DO USUÁRIO (VC)
 onAuthStateChanged(auth, (user) => {
   usuarioLogado = user;
   const navMenu = document.getElementById('nav-menu');
@@ -190,7 +194,7 @@ window.salvarEntrada = async function() {
   try {
     let idPersonalizado = "";
     const agora = new Date();
-    
+
     if (docIdEdicao) {
       const docRef = doc(db, COLECAO_ATENDIMENTOS, docIdEdicao);
       const docSnap = await getDoc(docRef);
@@ -204,6 +208,7 @@ window.salvarEntrada = async function() {
         telefone, transportadora, tipoOperacao,
         numeroOp, numeroCarga, cliente,
         observacao: observacao || "",
+        registradoPor: usuarioLogado?.email || "Sua Sessão/VC",
         atualizadoEm: serverTimestamp()
       });
 
@@ -222,7 +227,8 @@ window.salvarEntrada = async function() {
         horarioCadastro: formatTimeOnly(agora),
         horarioCheckin: null, horarioChamada: null, horarioChegadaDoca: null,
         horarioInicioOperacao: null, horarioFinalizacao: null, horarioSaida: null,
-        doca: null, status: "CADASTRADO", pesoToneladas: null, usuarioChamada: null,
+        doca: null, status: "CADASTRADO", pesoToneladas: null, 
+        usuarioCadastro: usuarioLogado?.email || "VC / Operador",
         criadoEm: serverTimestamp(), atualizadoEm: serverTimestamp()
       };
 
@@ -239,11 +245,29 @@ window.salvarEntrada = async function() {
     document.getElementById('ticket-carga').innerText = numeroCarga;
     document.getElementById('ticket-data').innerText = `${agora.toLocaleDateString('pt-BR')} ${formatTimeOnly(agora)}`;
 
-    const qrPayload = `https://projetotransportadora-828a3.web.app/?id=${idPersonalizado}&op=${encodeURIComponent(numeroOp)}&placa=${encodeURIComponent(placa)}`;
+    // QR Code
+    const qrPayload = `id=${idPersonalizado}&placa=${placa}&op=${numeroOp}`;
     const qrContainer = document.getElementById('qrcode-container');
     if (qrContainer) {
-      qrContainer.innerHTML = "";
-      if (typeof QRCode !== "undefined") new QRCode(qrContainer, { text: qrPayload, width: 160, height: 160 });
+      qrContainer.innerHTML = '';
+      if (typeof QRCode !== 'undefined') {
+        new QRCode(qrContainer, {
+          text: qrPayload,
+          width: 160,
+          height: 160
+        });
+
+        setTimeout(() => {
+          const canvas = qrContainer.querySelector('canvas');
+          if (canvas) canvas.remove();
+          
+          const img = qrContainer.querySelector('img');
+          if (img) {
+            img.style.margin = '0 auto';
+            img.style.display = 'block';
+          }
+        }, 30);
+      }
     }
 
     document.getElementById('area-ticket')?.classList.remove('hidden');
@@ -330,7 +354,6 @@ window.cancelarEdicaoCadastro = function() {
   document.getElementById('btn-cancelar-edicao').classList.add('hidden');
 };
 
-// IMPRESSÃO DE TICKET COM QR CODE CENTRALIZADO EM PDF
 window.imprimirTicketEntrada = function() {
   const ticketElement = document.getElementById('area-ticket');
   if (!ticketElement) return;
@@ -406,7 +429,7 @@ window.imprimirTicketEntrada = function() {
   win.document.close();
 };
 
-// 6. CÂMERA & PROCESSAMENTO QR
+// 6. CÂMERA & LEITURA QR
 window.iniciarCamera = async function(elementId, callbackSucesso) {
   await window.pararCamera();
   const element = document.getElementById(elementId);
@@ -518,10 +541,10 @@ window.habilitarScannerDoca = function() {
       });
       alert(`Veículo ${data.placa} chegou na ${data.doca}! Status: NA_DOCA.`);
     } else if (data.status === "NA_DOCA") {
-      window.iniciarOperacaoDoca(docSnap.id);
+      await window.iniciarOperacaoDoca(docSnap.id);
       alert(`Operação iniciada para a placa ${data.placa}.`);
     } else if (data.status === "EM_OPERACAO") {
-      window.finalizarOperacaoDoca(docSnap.id);
+      await window.finalizarOperacaoDoca(docSnap.id);
       alert(`Operação finalizada para ${data.placa}. Encaminhado à Balança.`);
     } else {
       alert(`Status atual: "${data.status}". Nenhum processo pendente.`);
@@ -641,7 +664,7 @@ window.confirmarChamadaDoca = async function() {
     await updateDoc(docRef, {
       doca: docaSelecionada,
       status: "CHAMADO",
-      usuarioChamada: usuarioLogado?.email || "Líder de Pátio",
+      usuarioChamada: usuarioLogado?.email || "VC / Líder de Pátio",
       horarioChamada: serverTimestamp(),
       atualizadoEm: serverTimestamp()
     });
@@ -709,7 +732,7 @@ window.buscarAtendimentoBalanca = async function() {
     document.getElementById('bal-operacao').innerText = data.tipoOperacao;
     document.getElementById('bal-doca').innerText = data.doca || 'N/A';
     document.getElementById('bal-status').innerText = data.status;
-    
+
     if (document.getElementById('peso-tonelada')) {
       document.getElementById('peso-tonelada').value = data.pesoToneladas || '';
     }
@@ -731,6 +754,7 @@ window.confirmarSaidaBalança = async function() {
     await updateDoc(doc(db, COLECAO_ATENDIMENTOS, atendimentoAtualId), {
       status: "SAIDA_LIBERADA",
       pesoToneladas: parseFloat(peso),
+      operadorBalanca: usuarioLogado?.email || "VC / Balança",
       horarioSaida: serverTimestamp(),
       atualizadoEm: serverTimestamp()
     });
@@ -853,6 +877,13 @@ window.aplicarFiltrosAdmin = function() {
   renderizarDashboardEAdmin(historicoExibido);
 };
 
+window.prepararEdicaoViaAdmin = function(idFirestore) {
+  const item = historicoCompleto.find(i => i.idFirestore === idFirestore);
+  if (!item) return alert("Registro não encontrado.");
+  window.navegarPara('aba-entrada');
+  carregarDadosFormularioEdicao(idFirestore, item);
+};
+
 document.getElementById('tipo-grafico-select')?.addEventListener('change', () => {
   renderizarDashboardEAdmin(historicoExibido);
 });
@@ -908,7 +939,6 @@ function renderizarDashboardEAdmin(lista) {
     }
   });
 
-  // Atualização dos Cartões KPI Logísticos da Transportadora
   const qtdTotal = lista.length;
   const pesoMedio = qtdTotal > 0 ? (pesoTotal / qtdTotal) : 0;
   const percentualOcupacao = Math.min(Math.round((doca / 20) * 100), 100);
@@ -925,172 +955,136 @@ function renderizarDashboardEAdmin(lista) {
   if (document.getElementById('kpi-aguardando-chamada')) document.getElementById('kpi-aguardando-chamada').innerText = espera;
 
   if (document.getElementById('kpi-saidas-liberadas')) document.getElementById('kpi-saidas-liberadas').innerText = saidaLiberada;
-  if (document.getElementById('kpi-ocorrencias')) document.getElementById('kpi-ocorrencias').innerText = 0; // Indicador de ocorrências
+  if (document.getElementById('kpi-ocorrencias')) document.getElementById('kpi-ocorrencias').innerText = 0;
   if (document.getElementById('kpi-pendentes-checkin')) document.getElementById('kpi-pendentes-checkin').innerText = cadastradoSemCheckin;
 
-  // Renderizar Todos os Gráficos
-  renderizarGraficoEvolucaoTemporal(contagemDatas);
-  renderizarGraficoPizzaOperacoes(contagemOperacoes);
-  renderizarGraficoRoscaStatus(contagemStatus);
-  renderizarGraficoGaugeOcupacao(percentualOcupacao);
+  renderizarGraficosChartJS(contagemDatas, contagemOperacoes, contagemStatus, percentualOcupacao);
 }
 
-// 1. GRÁFICO DE LINHAS / EVOLUÇÃO TEMPORAL
-function renderizarGraficoEvolucaoTemporal(dadosDatas) {
-  const ctx = document.getElementById('graficoEvolucaoTemporal')?.getContext('2d');
-  if (!ctx) return;
+function renderizarGraficosChartJS(contagemDatas, contagemOperacoes, contagemStatus, ocupacaoDocaPct) {
+  if (typeof Chart === 'undefined') return;
 
-  if (graficoEvolucao) graficoEvolucao.destroy();
+  // 1. Gráfico Evolução Temporal
+  const ctxEvolucao = document.getElementById('graficoEvolucaoTemporal')?.getContext('2d');
+  if (ctxEvolucao) {
+    if (graficoEvolucao) graficoEvolucao.destroy();
+    const tipoG = document.getElementById('tipo-grafico-select')?.value || 'line';
+    const labelsData = Object.keys(contagemDatas).sort();
+    const valoresData = labelsData.map(k => contagemDatas[k]);
 
-  const tipo = document.getElementById('tipo-grafico-select')?.value || 'line';
-  const labels = Object.keys(dadosDatas);
-  const valores = Object.values(dadosDatas);
-
-  graficoEvolucao = new Chart(ctx, {
-    type: tipo,
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Atendimentos por Dia',
-        data: valores,
-        borderColor: '#0a3d62',
-        backgroundColor: 'rgba(10, 61, 98, 0.15)',
-        fill: true,
-        tension: 0.3,
-        borderWidth: 2
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        datalabels: {
-          color: '#0a3d62',
-          font: { weight: 'bold' }
-        }
+    graficoEvolucao = new Chart(ctxEvolucao, {
+      type: tipoG,
+      data: {
+        labels: labelsData,
+        datasets: [{
+          label: 'Atendimentos por Dia',
+          data: valoresData,
+          backgroundColor: 'rgba(10, 61, 98, 0.5)',
+          borderColor: '#0a3d62',
+          borderWidth: 2,
+          fill: tipoG === 'line'
+        }]
       },
-      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-    }
-  });
-}
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { datalabels: { display: true } }
+      }
+    });
+  }
 
-// 2. GRÁFICO DE PIZZA (OPERAÇÕES) COM PORCENTAGEM
-function renderizarGraficoPizzaOperacoes(dadosOp) {
-  const ctx = document.getElementById('graficoPizzaOperacoes')?.getContext('2d');
-  if (!ctx) return;
+  // 2. Gráfico Pizza (Operações)
+  const ctxPizza = document.getElementById('graficoPizzaOperacoes')?.getContext('2d');
+  if (ctxPizza) {
+    if (graficoPizza) graficoPizza.destroy();
+    const labelsOp = Object.keys(contagemOperacoes);
+    const valoresOp = labelsOp.map(k => contagemOperacoes[k]);
+    const coresOp = labelsOp.map(k => OPERACAO_CORES[k] || '#7f8c8d');
 
-  if (graficoPizza) graficoPizza.destroy();
-
-  const labels = Object.keys(dadosOp);
-  const valores = Object.values(dadosOp);
-  const cores = labels.map(l => OPERACAO_CORES[l] || '#7f8c8d');
-
-  graficoPizza = new Chart(ctx, {
-    type: 'pie',
-    data: {
-      labels: labels,
-      datasets: [{
-        data: valores,
-        backgroundColor: cores
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        datalabels: {
-          color: '#ffffff',
-          font: { weight: 'bold', size: 12 },
-          formatter: (value, ctx) => {
-            const sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-            const percentage = sum > 0 ? ((value * 100) / sum).toFixed(1) + "%" : "0%";
-            return `${value}\n(${percentage})`;
+    graficoPizza = new Chart(ctxPizza, {
+      type: 'pie',
+      data: {
+        labels: labelsOp,
+        datasets: [{ data: valoresOp, backgroundColor: coresOp }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          datalabels: {
+            color: '#fff',
+            font: { weight: 'bold' },
+            formatter: (value, ctx) => {
+              const sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+              return sum > 0 ? ((value * 100) / sum).toFixed(1) + "%" : "0%";
+            }
           }
         }
       }
-    }
-  });
-}
+    });
+  }
 
-// 3. GRÁFICO DE ROSCA (STATUS) COM PORCENTAGEM
-function renderizarGraficoRoscaStatus(dadosStatus) {
-  const ctx = document.getElementById('graficoRoscaStatus')?.getContext('2d');
-  if (!ctx) return;
+  // 3. Gráfico Rosca (Status)
+  const ctxRosca = document.getElementById('graficoRoscaStatus')?.getContext('2d');
+  if (ctxRosca) {
+    if (graficoRosca) graficoRosca.destroy();
+    const labelsSt = Object.keys(contagemStatus);
+    const valoresSt = labelsSt.map(k => contagemStatus[k]);
 
-  if (graficoRosca) graficoRosca.destroy();
-
-  const labels = Object.keys(dadosStatus);
-  const valores = Object.values(dadosStatus);
-
-  graficoRosca = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: labels,
-      datasets: [{
-        data: valores,
-        backgroundColor: ['#fef3c7', '#fed7aa', '#dbeafe', '#e0e7ff', '#d1fae5', '#10b981']
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        datalabels: {
-          color: '#1e293b',
-          font: { weight: 'bold', size: 11 },
-          formatter: (value, ctx) => {
-            const sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-            const percentage = sum > 0 ? ((value * 100) / sum).toFixed(1) + "%" : "0%";
-            return percentage;
+    graficoRosca = new Chart(ctxRosca, {
+      type: 'doughnut',
+      data: {
+        labels: labelsSt,
+        datasets: [{
+          data: valoresSt,
+          backgroundColor: ['#e2e8f0', '#fef3c7', '#fed7aa', '#dbeafe', '#e0e7ff', '#d1fae5', '#10b981']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          datalabels: {
+            formatter: (value, ctx) => {
+              const sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+              return sum > 0 ? ((value * 100) / sum).toFixed(1) + "%" : "0%";
+            }
           }
         }
       }
-    }
-  });
-}
+    });
+  }
 
-// 4. GRÁFICO DE MEDIDOR (GAUGE DE OCUPAÇÃO) COM PORCENTAGEM
-function renderizarGraficoGaugeOcupacao(percentual) {
-  const ctx = document.getElementById('graficoGaugeOcupacao')?.getContext('2d');
-  if (!ctx) return;
+  // 4. Medidor Gauge Ocupação
+  const ctxGauge = document.getElementById('graficoGaugeOcupacao')?.getContext('2d');
+  if (ctxGauge) {
+    if (graficoGauge) graficoGauge.destroy();
 
-  if (graficoGauge) graficoGauge.destroy();
-
-  graficoGauge = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Ocupado (%)', 'Livre (%)'],
-      datasets: [{
-        data: [percentual, 100 - percentual],
-        backgroundColor: ['#e74c3c', '#2ecc71'],
-        circumference: 180,
-        rotation: 270
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: true, position: 'bottom' },
-        datalabels: {
-          color: '#ffffff',
-          font: { weight: 'bold', size: 13 },
-          formatter: (value) => `${value}%`
+    graficoGauge = new Chart(ctxGauge, {
+      type: 'doughnut',
+      data: {
+        labels: ['Ocupado (%)', 'Livre (%)'],
+        datasets: [{
+          data: [ocupacaoDocaPct, 100 - ocupacaoDocaPct],
+          backgroundColor: ['#079992', '#e1e8ef'],
+          circumference: 180,
+          rotation: 270
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          datalabels: {
+            formatter: (value, ctx) => ctx.dataIndex === 0 ? value + '%' : ''
+          }
         }
       }
-    }
-  });
+    });
+  }
 }
 
-window.prepararEdicaoViaAdmin = function(docId) {
-  const item = historicoCompleto.find(i => i.idFirestore === docId);
-  if (!item) return;
-
-  window.navegarPara('aba-entrada');
-  carregarDadosFormularioEdicao(docId, item);
-};
-
-// 11. EXPORTAÇÃO PARA EXCEL (.XLSX)
+// 11. EXPORTAÇÃO E IMPRESSÃO
 window.exportarParaExcelXLSX = function() {
   if (!historicoExibido || historicoExibido.length === 0) {
     alert("Nenhum dado disponível para exportação.");
@@ -1153,7 +1147,7 @@ window.carregarRelatoriosSalvosFirebase = async function() {
       tbody.appendChild(tr);
     });
   } catch (err) {
-    console.error("Erro ao carregar relatórios:", err);
+    console.error("Erro ao carregar relatorios:", err);
   }
 };
 

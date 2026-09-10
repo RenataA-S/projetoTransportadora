@@ -10,7 +10,7 @@
   --success-hover: #009432;
   --whatsapp: #25d366;
   --whatsapp-hover: #1ebd56;
-  --shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+ a --shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
 * {
@@ -26,13 +26,6 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-}
-
-.body-login {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
 }
 
 /* Header & Navegação */
@@ -74,12 +67,6 @@ body {
   max-width: 100%;
   max-height: 100%;
   border-radius: 6px;
-  object-fit: contain;
-}
-
-.system-logo {
-  height: 60px;
-  max-width: 100%;
   object-fit: contain;
 }
 
@@ -179,6 +166,9 @@ body {
 .form-group {
   display: flex;
   flex-direction: column;
+
+  
+  
 }
 
 .form-group.full-width {
@@ -188,8 +178,9 @@ body {
 .form-group label {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #34495e;
+  color: #343634;
   margin-bottom: 6px;
+  display: block;
 }
 
 .badge-opcional {
@@ -205,7 +196,8 @@ body {
   font-size: 0.95rem;
   transition: border-color 0.2s, box-shadow 0.2s;
   background-color: #f8fafc;
-  width: 100%;
+  width: 50%;
+  margin-bottom: 10px;
 }
 
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus, #input-busca-edicao:focus {
@@ -216,13 +208,6 @@ body {
 }
 
 /* Botões */
-.actions-wrapper {
-  display: flex;
-  gap: 12px;
-  margin-top: 20px;
-  flex-wrap: wrap;
-}
-
 .btn {
   padding: 10px 18px;
   border-radius: 6px;
@@ -244,9 +229,6 @@ body {
 .btn-primary { background-color: var(--primary); color: #fff; }
 .btn-primary:hover { background-color: var(--primary-hover); }
 
-.btn-chamar-veiculo { background-color: #0a3d62; color: #ffffff; font-weight: bold; border-radius: 6px; }
-.btn-chamar-veiculo:hover { background-color: #0c2461; }
-
 .btn-whatsapp { background-color: var(--whatsapp); color: #ffffff; font-weight: bold; }
 .btn-whatsapp:hover { background-color: var(--whatsapp-hover); }
 
@@ -259,56 +241,6 @@ body {
 .btn-success:hover { background-color: var(--success-hover); }
 
 .hidden { display: none !important; }
-
-/* ESTILO DOS CARTÕES KPI LOGÍSTICOS DA TRANSPORTADORA (ESTILO SEGUNDA IMAGEM) */
-.kpi-metric-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-}
-
-@media (max-width: 1024px) {
-  .kpi-metric-grid { grid-template-columns: repeat(3, 1fr); }
-}
-
-@media (max-width: 768px) {
-  .kpi-metric-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 480px) {
-  .kpi-metric-grid { grid-template-columns: 1fr; }
-}
-
-.kpi-box {
-  padding: 16px 14px;
-  border-radius: 4px;
-  color: #ffffff;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-end;
-  text-align: right;
-  min-height: 80px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-}
-
-.kpi-box.bg-blue { background-color: #5390c3; }
-.kpi-box.bg-purple { background-color: #8e68ad; }
-.kpi-box.bg-teal { background-color: #38bfa7; }
-.kpi-box.bg-red { background-color: #eb5757; }
-
-.kpi-value {
-  font-size: 1.5rem;
-  font-weight: 300;
-  line-height: 1.1;
-}
-
-.kpi-title {
-  font-size: 0.75rem;
-  opacity: 0.9;
-  margin-top: 4px;
-  font-weight: 400;
-}
 
 /* Grid de Docas 5x4 */
 .docas-grid-5x4 {
@@ -365,23 +297,6 @@ body {
 .status-FINALIZADO { background: #d1fae5; color: #065f46; }
 .status-SAIDA_LIBERADA { background: #10b981; color: #ffffff; }
 
-/* Layout Grid dos Gráficos */
-.dashboard-charts-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-top: 15px;
-}
-
-@media (max-width: 900px) {
-  .dashboard-charts-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.chart-container { height: 260px; position: relative; width: 100%; }
-.flex-center { display: flex; justify-content: center; align-items: center; }
-
 /* Ticket e Centralização de QR Code */
 .card-ticket { max-width: 450px; margin: 20px auto; border: 2px dashed var(--primary); }
 .qr-code-frame {
@@ -404,97 +319,9 @@ body {
 .info-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 4px 0; border-bottom: 1px dashed #e2e8f0; }
 .info-row:last-child { border-bottom: none; }
 
-/* Modais e Alertas */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  padding: 16px;
-}
-
-.modal-content {
-  background: #fff;
-  padding: 24px;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 420px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-}
-
-.alert { padding: 12px; border-radius: 6px; font-size: 0.88rem; margin-bottom: 15px; }
-.alert-danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-.alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-
-/* Utilitários */
 .text-center { text-align: center; }
-.text-left { text-align: left; }
 .text-primary { color: var(--primary); }
 .text-success { color: var(--success); }
-.m-0 { margin: 0; }
-.mb-12 { margin-bottom: 12px; }
-.mb-15 { margin-bottom: 15px; }
-.mb-20 { margin-bottom: 20px; }
-.mt-12 { margin-top: 12px; }
-.mt-15 { margin-top: 15px; }
-.mt-20 { margin-top: 20px; }
-.flex-1 { flex: 1; }
-.flex-full { flex: 1 1 100%; }
-.btn-full { width: 100%; }
-.input-uppercase { text-transform: uppercase; }
-
-.login-card { max-width: 400px; margin: 20px auto; }
-.card-busca-edicao { margin-bottom: 15px; border-left: 4px solid var(--accent); }
-.busca-titulo { font-size: 1rem; color: var(--primary); margin: 0; }
-.form-busca-container { display: flex; gap: 8px; flex: 1; max-width: 450px; }
-
-.ticket-subtitle { font-size: 0.85rem; color: #555; }
-.flex-wrap-gap10 { display: flex; gap: 10px; flex-wrap: wrap; }
-.flex-min130 { flex: 1; min-width: 130px; }
-.flex-min140 { flex: 1; min-width: 140px; }
-.flex-min90 { flex: 1; min-width: 90px; }
-
-.qr-reader-container { width: 100%; max-width: 400px; margin: 20px auto; border-radius: 8px; overflow: hidden; }
-.card-confirmacao { margin-top: 20px; text-align: left; }
-.checkin-sucesso-titulo { color: #155724; margin-bottom: 10px; }
-.bg-white-p12-r6 { background: #fff; padding: 12px; border-radius: 6px; }
-
-.flex-between-wrap { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-.gap-10 { gap: 10px; }
-.flex-end-wrap-gap10 { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
-.modal-subtext { margin-bottom: 15px; color: #555; }
-
-.form-busca-flex { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
-.input-busca-min { flex: 1; min-width: 200px; }
-.btn-busca-min { min-width: 120px; }
-.btn-text-lg { font-size: 1rem; }
-
-.select-grafico { padding: 6px 12px; font-weight: 600; }
-
-.relatorio-filter-container { background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px; }
-.filtro-titulo { margin-bottom: 10px; color: var(--primary); }
-.filtro-grid-container { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
-.label-filtro { font-size: 0.78rem; font-weight: bold; }
-.p-6-full { padding: 6px; width: 100%; }
-.filtro-col-min150 { flex: 1; min-width: 150px; }
-.filtro-col-min140 { flex: 1; min-width: 140px; }
-.filtro-col-min100 { flex: 1; min-width: 100px; }
-.filtro-col-min200 { flex: 1; min-width: 200px; }
-.input-busca-admin { padding: 6px 12px; font-size: 0.85rem; width: 100%; }
-.flex-gap-6 { display: flex; gap: 6px; }
-.flex-wrap { flex-wrap: wrap; }
-
-.auto-margin-max400 { max-width: 400px; margin-left: auto; margin-right: auto; }
-.p-15 { padding: 15px; }
-.border-primary { border: 1px solid var(--primary); }
-.min-w-200 { min-width: 200px; }
-.excel-frame-wrapper { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; margin-top: 10px; }
 
 .app-footer {
   text-align: center;
@@ -505,13 +332,13 @@ body {
   margin-top: auto;
 }
 
-/* REGRAS DE IMPRESSÃO (PDF / IMPRESSORA) PARA CENTRALIZAR O QR CODE */
+/* REGRAS DE IMPRESSÃO CORRIGIDAS */
 @media print {
   body * {
     visibility: hidden;
   }
-  #area-ticket, #area-ticket * {
-    visibility: visible;
+  #area-ticket, #area-ticket *, #qrcode-container, #qrcode-container * {
+    visibility: visible !important;
   }
   #area-ticket {
     position: absolute;
@@ -527,3 +354,231 @@ body {
     display: none !important;
   }
 }
+.system-logo.mb-12 {
+  display: block;
+  max-width: 180px;
+  height: auto;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 3rem; /* Equivalente ao mb-12 do Tailwind (48px) */
+  object-fit: contain;
+}
+/* Oculta canvas duplicado gerado pela biblioteca QRCode.js */
+#qrcode-container canvas {
+  display: none !important;
+}
+
+#qrcode-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+#form-login {
+  display: flex;
+  flex-direction: column;  /* Empilha os elementos em coluna */
+  align-items: center;     /* Centraliza os elementos na horizontal */
+  justify-content: center; /* Centraliza o conteúdo na vertical (caso o form tenha altura definida) */
+  text-align: center;      /* Centraliza os textos e labels */
+  width: 100%;             /* Garante que o container use a largura total */
+}
+
+/* Centraliza os campos de entrada, texto digitado e placeholders */
+#form-login input {
+  text-align: center;
+  margin: 0,1 auto;
+}
+
+/* Centraliza os blocos dos campos se usarem largura total */
+#form-login .form-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/* --- MODAL CHAMAR VEÍCULO PARA DOCA --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 16px;
+}
+
+.modal-content {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  text-align: left;
+}
+
+.modal-content h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1a252f;
+  margin-bottom: 6px;
+}
+
+.modal-subtext {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 16px;
+}
+
+.label-doca-modal {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #333;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.select-doca-modal {
+  width: 100% !important;
+  padding: 8px 12px !important;
+  border: 1px solid #c5d0d8 !important;
+  border-radius: 6px !important;
+  background-color: #fff !important;
+  font-size: 0.9rem !important;
+  color: #2c3e50 !important;
+  margin-bottom: 20px !important;
+  outline: none;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+}
+
+.btn-cancelar-modal {
+  background-color: #6c7a89;
+  color: #ffffff;
+  padding: 8px 20px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  min-height: 38px;
+}
+
+.btn-cancelar-modal:hover {
+  background-color: #5a6673;
+}
+
+.btn-confirmar-modal {
+  background-color: #009688;
+  color: #ffffff;
+  padding: 8px 22px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  min-height: 38px;
+}
+
+.btn-confirmar-modal:hover {
+  background-color: #007f72;
+}
+/* --- GRID DE CARTÕES DE KPI OPERACIONAIS --- */
+.kpi-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.kpi-box {
+  padding: 16px 20px;
+  border-radius: 10px;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+}
+
+.kpi-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.kpi-title {
+  font-size: 0.82rem;
+  font-weight: 500;
+  opacity: 0.9;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Cores do Tema para os Cards */
+.kpi-box.bg-blue {
+  background: linear-gradient(135deg, #0a3d62 0%, #3c6382 100%);
+}
+
+.kpi-box.bg-purple {
+  background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+}
+
+.kpi-box.bg-teal {
+  background: linear-gradient(135deg, #079992 0%, #38ada9 100%);
+}
+
+.kpi-box.bg-red {
+  background: linear-gradient(135deg, #eb4d4b 0%, #ff7979 100%);
+}
+
+/* --- GRID DE GRÁFICOS LADO A LADO --- */
+.dashboard-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.dashboard-charts-grid .card {
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 280px;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Responsividade para Telas Menores */
+@media (max-width: 900px) {
+  .dashboard-charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
